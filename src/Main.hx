@@ -1,15 +1,13 @@
 package;
 
-import haxeshim.HaxeArgs;
-import haxeshim.Scope;
 
 class Main {
 	
 	static function main() {
 		
-    var scope = Scope.seek({
+    var scope = haxeshim.Scope.seek({
       startLookingIn: Sys.getCwd(),
-      homeDir: switch Sys.getEnv('HAXESHIM_ROOT') {
+      haxeshimRoot: switch Sys.getEnv('HAXESHIM_ROOT') {
         case null | '':
           Sys.getEnv('APPDATA') + '/haxe';
         case v:

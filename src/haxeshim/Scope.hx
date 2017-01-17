@@ -7,38 +7,60 @@ using haxe.io.Path;
 
 typedef SeekingOptions = {
   var startLookingIn(default, null):String;
-  var homeDir(default, null):String;
+  var haxeshimRoot(default, null):String;
 }
 
 class Scope {
   
   static var IS_WINDOWS = Sys.systemName() == 'Windows';
   static var EXT = if (IS_WINDOWS) '.exe' else '';
-  
-  public var haxeShimRoot(default, null):String;
+  static var CONFIG_FILE = '.haxerc';
+  /**
+   * The root directory for haxeshim as configured when the scope was creates
+   */
+  public var haxeshimRoot(default, null):String;
+  /**
+   * Indicates whether the scope is global
+   */
   public var isGlobal(default, null):Bool;
-  public var file(default, null):String;
-  public var workingDir(default, null):String;
-  public var config(default, null):HaxeConfig;
+  /**
+   * The directory of the scope, where the `.haxerc` file was found and also where the `.scopedHaxeLibs` directory is expected
+   */
+  public var scopeDir(default, null):String;
+  /**
+   * Indicates the path the the scope's config file. This is likely to be `'$scopeDir/.haxerc'`, 
+   * but you should rely on this field to avoid hardcoding assumptions that may break in the future.
+   */
+  public var configFile(default, null):String;
+  /**
+   * The working directory that the scope was created with.
+   * If the scope is not global, this is almost certainly a subdirectory of `scopeDir`.
+   */
+  public var cwd(default, null):String;
   
-  //public var haxeBinary(get, never):String;
-    //function get_haxeBinary()
-      //return '$haxeRoot/versions/${config.version}/
+  /**
+   * The data read from the config file.
+   */
+  public var config(default, null):Config;
   
-  var resolver:HaxeArgs;
+  var resolver:Resolver;
   
-  function new(isGlobal, file, haxeShimRoot) {
+  function new(haxeshimRoot, isGlobal, scopeDir, cwd) {
+    
+    this.haxeshimRoot = haxeshimRoot;
     this.isGlobal = isGlobal;
-    this.file = file;
-    this.workingDir = file.directory();
-    this.haxeShimRoot = haxeShimRoot;
+    this.scopeDir = scopeDir;
+    this.cwd = cwd;
+    
+    configFile = '$scopeDir/$CONFIG_FILE';
+
     //trace(file);
     var src = 
       try {
-        file.getContent();
+        configFile.getContent();
       }
       catch (e:Dynamic) {
-        throw 'Unable to open file $file because $e';
+        throw 'Unable to open file $configFile because $e';
       }
     
     this.config =
@@ -46,20 +68,20 @@ class Scope {
         haxe.Json.parse(src);
       }
       catch (e:Dynamic) {
-        Sys.stderr().writeString('Invalid JSON in file $file:\n\n$src\n\n');
+        Sys.stderr().writeString('Invalid JSON in file $configFile:\n\n$src\n\n');
         throw e;
       }
       
     if (config.version == null)
-      throw 'No version set in $file';
+      throw 'No version set in $configFile';
       
     switch config.resolveLibs {
       case Scoped | Mixed | Haxelib:
       case v:
-        throw 'invalid value $v for `resolveLibs` in $file';
+        throw 'invalid value $v for `resolveLibs` in $configFile';
     }
     
-    this.resolver = new HaxeArgs(workingDir, config.resolveLibs);
+    this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/libs']);
     
   }
   
@@ -79,19 +101,25 @@ class Scope {
     return resolver.resolve(args, resolveThroughHaxelib);
     
   public function runHaxe(args:Array<String>) {
+    trace(resolve(args));
     //return Exec.run('$haxeRoot/versions/${config.version}/', workingDir, 
   }  
   
-  static public function seek(options:SeekingOptions) {
+  static public function seek(options:SeekingOptions, ?cwd) {
     
+    if (cwd == null)
+      cwd = options.startLookingIn;
+    
+    var make = Scope.new.bind(options.haxeshimRoot, _, _, cwd);
+      
     function global()
-      return new Scope(true, options.homeDir + '/.haxerc', options.homeDir);
+      return make(true, options.haxeshimRoot);
       
     function dig(cur:String) 
       return
         switch cur {
-          case '$_/.haxerc' => found if (found.exists()):
-            new Scope(false, found, options.homeDir);
+          case '$_/$CONFIG_FILE'.exists() => true:
+            make(false, cur);
           case '/' | '':
             global();
           case _.split(':') => [drive, ''] if (IS_WINDOWS && drive.length == 1):
@@ -107,16 +135,5 @@ class Scope {
     if (IS_WINDOWS) 
       Sys.getEnv('APPDATA') + '/haxe';
     else 
-      '~/haxe';//no idea if this will ever work
-}
-
-typedef HaxeConfig = {
-  var version(default, null):String;
-  var resolveLibs(default, null):LibResolution;
-}
-
-@:enum abstract LibResolution(String) {
-  var Scoped = null;
-  var Mixed = 'mixed';
-  var Haxelib = 'haxelib';
+      '~/haxe';//no idea if this will actually work
 }
