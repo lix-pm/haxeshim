@@ -1,6 +1,7 @@
 package haxeshim;
 
 import haxe.DynamicAccess;
+import js.node.Buffer;
 using tink.CoreApi;
 
 class Exec {
@@ -24,4 +25,17 @@ class Exec {
       case { error: e }:
         Failure(new Error('Failed to call $cmd because $e'));
     }
+    
+  static public function eval(cmd:String, cwd:String, args:Array<String>, ?env:DynamicAccess<String>) 
+    return switch js.node.ChildProcess.spawnSync(cmd, args, { cwd: cwd, env: mergeEnv(env) } ) {
+      case x if (x.error == null):
+        Success({
+          status: x.status,
+          stdout: (x.stdout:Buffer).toString(),
+          stderr: (x.stderr:Buffer).toString(),
+        });
+      case { error: e }:
+        Failure(new Error('Failed to call $cmd because $e'));
+    }
+    
 }

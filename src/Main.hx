@@ -1,4 +1,5 @@
 package;
+import haxeshim.Exec;
 
 
 class Main {
@@ -16,7 +17,9 @@ class Main {
     });
     
     //trace(scope.resolve(['-lib', 'bar', '-lib', 'tink_core']));
-    scope.runHaxe(['-lib', 'bar', '-lib', 'tink_core']);
+    
+    Exec.sync(scope.haxeInstallation.compiler, scope.cwd, scope.resolve(['-lib', 'bar', '-lib', 'tink_core', '-main', 'Test', '--interp']), scope.haxeInstallation.env());
+    //scope.runHaxe(['-lib', 'bar', '-lib', 'tink_core']);
     //trace(scope.workingDir);
     
     //new HaxeArgs(scope.workingDir, Scoped).resolve([]);

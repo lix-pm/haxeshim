@@ -89,10 +89,7 @@ class CompilerServer {
         return freePort.next(function (port):Waiting {
           var installation = scope.getInstallation(version);
           
-          var proc = Exec.async(installation.compiler, scope.cwd, ['--wait', Std.string(port)], {
-            HAXE_STD_PATH: installation.stdLib,
-            HAXE_VERSION: installation.version,
-          });
+          var proc = Exec.async(installation.compiler, scope.cwd, ['--wait', Std.string(port)], installation.env());
           
           return {
             died: Future.async(function (cb) {

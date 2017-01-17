@@ -83,24 +83,33 @@ class Resolver {
     }
     
   function processHxml(file:String) {
-    var args = [];
+    process(parseLines(file.getContent()));
+  }
+  
+  static public function parseLines(source:String, ?normalize:String->Array<String>) {
+    if (normalize == null)
+      normalize = function (x) return [x];
+      
+    var ret = [];
     
-    for (line in file.getContent().split('\n').map(StringTools.trim))
+    for (line in source.split('\n').map(StringTools.trim))
       switch line.charAt(0) {
         case null:
         case '-':
           switch line.indexOf(' ') {
             case -1:
-              args.push(line);
+              ret.push(line);
             case v:
-              args.push(line.substr(0, v));
-              args.push(line.substr(v).trim());
+              ret.push(line.substr(0, v));
+              ret.push(line.substr(v).trim());
           }
         case '#':
         default:
-          args.push(line);
+          for (a in normalize(line))
+            ret.push(a);
       }
-    process(args);
+    
+    return ret;
   }
   
   function process(args:Array<String>) {

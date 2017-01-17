@@ -3,6 +3,7 @@ import haxe.DynamicAccess;
 
 using sys.io.File;
 using sys.FileSystem;
+using StringTools;
 using haxe.io.Path;
 
 typedef SeekingOptions = {
@@ -87,29 +88,30 @@ class Scope {
   }
   
   public function getInstallation(version:String) 
-    return new HaxeInstallation('$haxeshimRoot/versions/$version', version);
+    return new HaxeInstallation('$haxeshimRoot/versions/$version', version, '$haxeshimRoot/libs');
   
-  function resolveThroughHaxelib(libs:Array<String>) {
-    //TODO: this is currently a dummy implementation
-    var ret = [];
-    
-    for (l in libs) {
-      ret.push('-lib');
-      ret.push(l);
-    }
-    
-    return ret;
-  }
+  function resolveThroughHaxelib(libs:Array<String>) 
+    return 
+      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
+        case Success({ status: 0, stdout: stdout }):           
+          Resolver.parseLines(stdout, function (cp) return ['-cp', cp]);
+        case Success({ status: v, stdout: stdout, stderr: stderr }):
+          Sys.stderr().writeString(stdout + stderr);//fun fact: haxelib prints errors to stdout
+          Sys.exit(v);
+          null;
+        case Failure(e):
+          e.throwSelf();
+      }
   
   public function resolve(args:Array<String>) 
     return resolver.resolve(args, resolveThroughHaxelib);
     
-  public function runHaxe(args:Array<String>, ?version:String) {
-    if (version == null)
-      version = config.version;
-    trace(resolve(args));
+  //public function runHaxe(args:Array<String>, ?version:String) {
+    //if (version == null)
+      //version = config.version;
+    //trace(resolve(args));
     //return Exec.run('$haxeRoot/versions/${config.version}/', workingDir, 
-  }  
+  //}  
   
   static public function seek(options:SeekingOptions, ?cwd) {
     
