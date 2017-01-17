@@ -5,6 +5,10 @@ Haxe is great. Greater than unicorns. Unfortunately decent solutions for handlin
 1. Allow having different haxe versions.
 2. Manage `-lib` params without haxelib.
 
+At the bottom line this project merely decouples a number of things that are currently just mushed together in the standard Haxe distribution. The decomposition itself would be highly advisable to apply there too, but attempts to argue for that have shown no effect, so an independent effort would seem to be the only way forward.
+
+The project is currently based on nodejs for execution and distributed through NPM, due to their ubiquity. The command line interfaces aside, much of the code is written against Haxe's sys APIs and should thus be portable to other targets, as it should be, because currently it adds quite an overhead to compilation time (~100ms). Some of it can be optimized away, but given that invoking nodejs alone comes with quite an overhead, a truly optimized solution will have to rely on a different runtime. 
+
 ## Haxe version management
 
 Haxeshim has a "root" directory, depending on platform:
@@ -31,7 +35,7 @@ typedef Config = {
 }
 ```
 
-We'll cover library resultion below. As for execution of the haxe compiler itself, the binary in `<HAXESHIM_ROOT>/version/<version>` is picked, with `HAXE_STD_PATH` set to the accompanying std lib.
+We'll cover library resultion below. As for execution of the haxe compiler itself, the binary in `<HAXESHIM_ROOT>/versions/<version>` is picked, with `HAXE_STD_PATH` set to the accompanying std lib.
 
 ## Library resolution
 
@@ -53,4 +57,4 @@ This is a mix of both approaches. Libraries that are not found using scoped reso
 
 ## Security implications
 
-It is true that haxeshim kinda bypasses access control, allowing users to accidentally have their haxe command hijacked in some malicious way. Given though that anything running with the current user's privileges can tamper with the installed haxelibs and every haxelib using extraParams.hxml can execute arbitrary code, we're not making it any worse.
+It is true that haxeshim kinda bypasses access control, allowing users to accidentally have their haxe command hijacked in some malicious way. Given though that anything running with the current user's privileges can tamper with the installed haxelibs and every haxelib using extraParams.hxml can execute arbitrary code with whatever privileges `haxe` was invoked with, we're not making it any worse.

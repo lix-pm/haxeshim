@@ -70,7 +70,10 @@ class Resolver {
     
     process(args);
     
-    return ret.concat(haxelib(libs));
+    return switch libs {
+      case []: ret;
+      default: ret.concat(haxelib(libs));
+    }
   }
   
   function resolveInScope(lib:String) 

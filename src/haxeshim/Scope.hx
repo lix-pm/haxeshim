@@ -61,9 +61,13 @@ class Scope {
       try {
         configFile.getContent();
       }
-      catch (e:Dynamic) {
-        throw 'Unable to open file $configFile because $e';
-      }
+      catch (e:Dynamic) 
+        throw 
+          if (isGlobal)
+            'Global config file $configFile does not exist or cannot be opened';
+          else
+            'Unable to open file $configFile because $e';
+      
     
     this.config =
       try {
@@ -105,13 +109,6 @@ class Scope {
   
   public function resolve(args:Array<String>) 
     return resolver.resolve(args, resolveThroughHaxelib);
-    
-  //public function runHaxe(args:Array<String>, ?version:String) {
-    //if (version == null)
-      //version = config.version;
-    //trace(resolve(args));
-    //return Exec.run('$haxeRoot/versions/${config.version}/', workingDir, 
-  //}  
   
   static public function seek(options:SeekingOptions, ?cwd) {
     

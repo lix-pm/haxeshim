@@ -10,6 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/lix-pm/haxeshim.git"
   },
+  "scripts": {
+    "postinstall": "node bin/postinstall.js"
+  },  
   "keywords": [
     "haxe"
   ],

@@ -1,5 +1,9 @@
 -cp src
 -cp lib/hxnodejs/src
+-D hxnodejs
 -cp lib/tink_core/src
+-D tink_core
+-D js-es5
+-dce full
 lib/hxnodejs/extraParams.hxml
 --macro haxeshim.Build.postprocess()

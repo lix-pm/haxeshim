@@ -1,0 +1,4 @@
+common.hxml
+-main haxeshim.PostInstall
+-js bin/postinstall.js
+-resource src/haxeshim/exify/exifycmd@exify
