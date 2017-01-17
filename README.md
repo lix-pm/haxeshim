@@ -12,7 +12,7 @@ Haxeshim has a "home" directory, depending on platform:
 - on Windows it is `%APPDATA%/haxe`
 - elsewhere it is `~/haxe`
 
-It can always be overwritten with the `HAXE_SHIM_HOME` environment variable.
+It can always be overwritten with the `HAXESHIM_ROOT` environment variable.
 
 When running the `haxe` command, we scan from the CWD up for a `.haxerc` and if non is found we look in the "home" directory. Every `.haxerc` defines what we consider a "scope" for all subdirectories (except those which contain `.haxerc` files to define new scopes).
 
