@@ -16,8 +16,9 @@ class HaxeCli {
     switch Sys.args() {
       case ['--wait', Std.parseInt(_) => port]:
         new CompilerServer(port, defaultScope());
-      default:
-        throw 'not implemented';
+      case args:
+        var scope = defaultScope();
+        Exec.sync(scope.haxeInstallation.compiler, scope.cwd, scope.resolve(args), scope.haxeInstallation.env());
     }
   
   

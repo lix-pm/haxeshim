@@ -1,0 +1,25 @@
+{
+  "name": "haxeshim",
+  "version": "0.0.4",
+  "bin": {
+    "haxe": "bin/haxeshim.js",
+    "haxelib": "bin/haxelibshim.js"
+  },
+  "description": "Haxe shim to deal with cooexisting versions.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lix-pm/haxeshim.git"
+  },
+  "keywords": [
+    "haxe"
+  ],
+  "files": [
+    "bin"
+  ],
+  "author": "back2dos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lix-pm/haxeshim/issues"
+  },
+  "homepage": "https://github.com/lix-pm/haxeshim#readme"
+}

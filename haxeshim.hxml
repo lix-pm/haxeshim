@@ -1,0 +1,3 @@
+common.hxml
+-main haxeshim.HaxeCli
+-js bin/haxeshim.js
