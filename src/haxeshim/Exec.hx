@@ -14,7 +14,10 @@ class Exec {
     return ret;
   }  
   
-  static public function run(cmd:String, cwd:String, args:Array<String>, ?env:DynamicAccess<String>) 
+  static public function async(cmd:String, cwd:String, args:Array<String>, ?env:DynamicAccess<String>) 
+    return js.node.ChildProcess.spawn(cmd, args, { cwd: cwd, stdio: 'inherit', env: mergeEnv(env) }); 
+  
+  static public function sync(cmd:String, cwd:String, args:Array<String>, ?env:DynamicAccess<String>) 
     return switch js.node.ChildProcess.spawnSync(cmd, args, { cwd: cwd, stdio: 'inherit', env: mergeEnv(env) } ) {
       case x if (x.error == null):
         Success(x.status);

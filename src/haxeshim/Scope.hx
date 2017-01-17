@@ -12,8 +12,8 @@ typedef SeekingOptions = {
 
 class Scope {
   
-  static var IS_WINDOWS = Sys.systemName() == 'Windows';
-  static var EXT = if (IS_WINDOWS) '.exe' else '';
+  static public var IS_WINDOWS(default, null):Bool = Sys.systemName() == 'Windows';
+  
   static var CONFIG_FILE = '.haxerc';
   /**
    * The root directory for haxeshim as configured when the scope was creates
@@ -38,6 +38,7 @@ class Scope {
    */
   public var cwd(default, null):String;
   
+  public var haxeInstallation(default, null):HaxeInstallation;
   /**
    * The data read from the config file.
    */
@@ -82,8 +83,11 @@ class Scope {
     }
     
     this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/libs']);
-    
+    this.haxeInstallation = getInstallation(config.version);
   }
+  
+  public function getInstallation(version:String) 
+    return new HaxeInstallation('$haxeshimRoot/versions/$version', version);
   
   function resolveThroughHaxelib(libs:Array<String>) {
     //TODO: this is currently a dummy implementation
@@ -100,7 +104,9 @@ class Scope {
   public function resolve(args:Array<String>) 
     return resolver.resolve(args, resolveThroughHaxelib);
     
-  public function runHaxe(args:Array<String>) {
+  public function runHaxe(args:Array<String>, ?version:String) {
+    if (version == null)
+      version = config.version;
     trace(resolve(args));
     //return Exec.run('$haxeRoot/versions/${config.version}/', workingDir, 
   }  
@@ -131,7 +137,7 @@ class Scope {
     return dig(options.startLookingIn.absolutePath().removeTrailingSlashes());
   }
   
-  static public var DEFAULT_HOME(default, null):String =
+  static public var DEFAULT_ROOT(default, null):String =
     if (IS_WINDOWS) 
       Sys.getEnv('APPDATA') + '/haxe';
     else 

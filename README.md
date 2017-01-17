@@ -7,19 +7,19 @@ Haxe is great. Greater than unicorns. Unfortunately decent solutions for handlin
 
 ## Haxe version management
 
-Haxeshim has a "home" directory, depending on platform:
+Haxeshim has a "root" directory, depending on platform:
 	
 - on Windows it is `%APPDATA%/haxe`
 - elsewhere it is `~/haxe`
 
 It can always be overwritten with the `HAXESHIM_ROOT` environment variable.
 
-When running the `haxe` command, we scan from the CWD up for a `.haxerc` and if non is found we look in the "home" directory. Every `.haxerc` defines what we consider a "scope" for all subdirectories (except those which contain `.haxerc` files to define new scopes).
+When running the `haxe` command, we scan from the CWD up for a `.haxerc` and if non is found we look in the "root" directory. Every `.haxerc` defines what we consider a "scope" for all subdirectories (except those which contain `.haxerc` files to define new scopes).
 
 The contents of this file are stored as JSON and defined like so:
 	
 ```haxe
-typedef HaxeConfig = {
+typedef Config = {
   var version(default, null):String;
   var resolveLibs(default, null):LibResolution;
 }
@@ -31,7 +31,7 @@ typedef HaxeConfig = {
 }
 ```
 
-We'll cover library resultion below. As for execution of the haxe compiler itself, the binary in `<HaxeShimHome>/version/<version>` is picked, with `HAXE_STD_PATH` set to the accompanying std lib.
+We'll cover library resultion below. As for execution of the haxe compiler itself, the binary in `<HAXESHIM_ROOT>/version/<version>` is picked, with `HAXE_STD_PATH` set to the accompanying std lib.
 
 ## Library resolution
 
