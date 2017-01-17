@@ -77,7 +77,7 @@ class Resolver {
   }
   
   function resolveInScope(lib:String) 
-    return switch '$scopeDir/.scopedHaxeLibs/$lib.hxml' {
+    return switch '$scopeDir/haxe_libraries/$lib.hxml' {
       case notFound if (!notFound.exists()):
         Failure('Cannot resolve `-lib $lib` because file $notFound is missing');
       case f: 

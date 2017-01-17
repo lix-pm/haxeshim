@@ -45,7 +45,7 @@ Haxeshim builds on the idea that every scope has a single version of a library. 
 	
 ### Scoped (the default)
 
-Any parameters that are passed to haxeshim are parsed, including hxmls and the `-lib` parameters are "intercepted". To resolve these, we look for a `.haxelib/<libName>.hxml` and parse the parameters therein. If they are `-lib` parameters we process them accordingly. Note that in this case, specifying library versions as with `-lib name:version` is not allowed.
+Any parameters that are passed to haxeshim are parsed, including hxmls and the `-lib` parameters are "intercepted". To resolve these, we look for a `haxe_libraries/<libName>.hxml` and parse the parameters therein. If they are `-lib` parameters we process them accordingly. Note that in this case, specifying library versions as with `-lib name:version` is not allowed.
 
 ### Haxelib
 

@@ -1,5 +1,7 @@
 package haxeshim;
 
+using tink.CoreApi;
+
 class HaxeCli {
   static public function defaultScope()
     return Scope.seek({
@@ -12,19 +14,26 @@ class HaxeCli {
       }
     });
     
+  static function die(code, reason):Dynamic {
+    Sys.stderr().writeString(reason);
+    Sys.exit(code);    
+    return throw 'unreachable';
+  }
+  static function gracefully<T>(f:Void->T) 
+    return 
+      try f()
+      catch (e:Error) 
+        die(e.code, e.message)
+      catch (e:String) 
+        die(500, e);
+    
   static function main() 
     switch Sys.args() {
       case ['--wait', Std.parseInt(_) => port]:
         new CompilerServer(port, defaultScope());
       case args:
         
-        var scope = 
-          try defaultScope()
-          catch (e:String) {
-            Sys.stderr().writeString(e);
-            Sys.exit(500);
-            null;
-          }
+        var scope = gracefully(defaultScope);
         
         switch [args.indexOf('--connect'), args.indexOf('--haxe-version')] {
           case [ -1, -1]:
@@ -40,7 +49,7 @@ class HaxeCli {
           default:
         }
         
-        Exec.sync(scope.haxeInstallation.compiler, scope.cwd, scope.resolve(args), scope.haxeInstallation.env());
+        Sys.exit(gracefully(Exec.sync(scope.haxeInstallation.compiler, scope.cwd, gracefully(scope.resolve.bind(args)), scope.haxeInstallation.env()).sure));
     }
   
   
