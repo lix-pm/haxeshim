@@ -5,6 +5,7 @@ using sys.io.File;
 using sys.FileSystem;
 using StringTools;
 using haxe.io.Path;
+using haxe.Json;
 
 typedef SeekingOptions = {
   @:optional var cwd(default, null):String;
@@ -40,12 +41,13 @@ class Scope {
    */
   public var cwd(default, null):String;
   
-  public var haxeInstallation(default, null):HaxeInstallation;
   /**
    * The data read from the config file.
    */
   public var config(default, null):Config;
   
+  public var haxeInstallation(default, null):HaxeInstallation;
+      
   var resolver:Resolver;
   
   function new(haxeshimRoot, isGlobal, scopeDir, cwd) {
@@ -57,11 +59,8 @@ class Scope {
     
     configFile = '$scopeDir/$CONFIG_FILE';
 
-    //trace(file);
     var src = 
-      try {
-        configFile.getContent();
-      }
+      try configFile.getContent()
       catch (e:Dynamic) 
         throw 
           if (isGlobal)
@@ -71,9 +70,7 @@ class Scope {
       
     
     this.config =
-      try {
-        haxe.Json.parse(src);
-      }
+      try src.parse()
       catch (e:Dynamic) {
         Sys.stderr().writeString('Invalid JSON in file $configFile:\n\n$src\n\n');
         throw e;
@@ -88,8 +85,25 @@ class Scope {
         throw 'invalid value $v for `resolveLibs` in $configFile';
     }
     
-    this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/libs']);
     this.haxeInstallation = getInstallation(config.version);
+    this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/libs']);
+  }
+  
+  public function delete() 
+    this.configFile.deleteFile();
+  
+  static public function create(at:String, config:Config) 
+    '$at/$CONFIG_FILE'.saveContent(config.stringify());
+  
+  static public function exists(at:String)
+    return '$at/$CONFIG_FILE'.exists();
+  
+  public function reconfigure(changed:Config) {
+    
+    for (f in Reflect.fields(changed))
+      Reflect.setField(config, f, Reflect.field(changed, f));
+    
+    configFile.saveContent(config.stringify());
   }
   
   public function getInstallation(version:String) 
