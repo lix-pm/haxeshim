@@ -7,12 +7,13 @@ using StringTools;
 using haxe.io.Path;
 
 typedef SeekingOptions = {
-  var startLookingIn(default, null):String;
-  var haxeshimRoot(default, null):String;
+  @:optional var cwd(default, null):String;
+  @:optional var startLookingIn(default, null):String;
+  @:optional var haxeshimRoot(default, null):String;
 }
 
 class Scope {
-  
+ 
   static public var IS_WINDOWS(default, null):Bool = Sys.systemName() == 'Windows';
   
   static var CONFIG_FILE = '.haxerc';
@@ -110,15 +111,29 @@ class Scope {
   public function resolve(args:Array<String>) 
     return resolver.resolve(args, resolveThroughHaxelib);
   
-  static public function seek(options:SeekingOptions, ?cwd) {
+  static public function seek(?options:SeekingOptions) {
+    if (options == null)
+      options = {};
+      
+    var cwd = switch options.cwd {
+      case null: Sys.getCwd();
+      case v: v;
+    }
     
-    if (cwd == null)
-      cwd = options.startLookingIn;
+    var startLookingIn = switch options.startLookingIn {
+      case null: cwd;
+      case v: v;
+    }
     
-    var make = Scope.new.bind(options.haxeshimRoot, _, _, cwd);
+    var haxeshimRoot = switch options.haxeshimRoot {
+      case null: DEFAULT_ROOT;
+      case v: v;
+    }
+    
+    var make = Scope.new.bind(haxeshimRoot, _, _, cwd);
       
     function global()
-      return make(true, options.haxeshimRoot);
+      return make(true, haxeshimRoot);
       
     function dig(cur:String) 
       return
@@ -133,12 +148,18 @@ class Scope {
             dig(cur.directory().removeTrailingSlashes());
         }
         
-    return dig(options.startLookingIn.absolutePath().removeTrailingSlashes());
+    return dig(startLookingIn.absolutePath().removeTrailingSlashes());
   }
   
-  static public var DEFAULT_ROOT(default, null):String =
-    if (IS_WINDOWS) 
-      Sys.getEnv('APPDATA') + '/haxe';
-    else 
-      '~/haxe';//no idea if this will actually work
+  static public var DEFAULT_ROOT(default, null):String =  
+    switch Sys.getEnv('HAXESHIM_ROOT') {
+      case null | '':
+        if (IS_WINDOWS) 
+          Sys.getEnv('APPDATA') + '/haxe';
+        else 
+          '~/haxe';//no idea if this will actually work
+      case v:
+        v;
+    };
+  
 }

@@ -3,16 +3,6 @@ package haxeshim;
 using tink.CoreApi;
 
 class HaxeCli {
-  static public function defaultScope()
-    return Scope.seek({
-      startLookingIn: Sys.getCwd(),
-      haxeshimRoot: switch Sys.getEnv('HAXESHIM_ROOT') {
-        case null | '':
-          Sys.getEnv('APPDATA') + '/haxe';
-        case v:
-          v;
-      }
-    });
     
   static function die(code, reason):Dynamic {
     Sys.stderr().writeString(reason);
@@ -30,10 +20,12 @@ class HaxeCli {
   static function main() 
     switch Sys.args() {
       case ['--wait', Std.parseInt(_) => port]:
-        new CompilerServer(port, defaultScope());
+        
+        new CompilerServer(port, Scope.seek());
+        
       case args:
         
-        var scope = gracefully(defaultScope);
+        var scope = gracefully(Scope.seek.bind());
         
         switch [args.indexOf('--connect'), args.indexOf('--haxe-version')] {
           case [ -1, -1]:

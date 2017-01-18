@@ -5,7 +5,7 @@ using tink.CoreApi;
 class HaxelibCli {
 
   static function main() {
-    var installation = HaxeCli.defaultScope().haxeInstallation;
+    var installation = Scope.seek().haxeInstallation;
     
     Sys.exit(
       switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), installation.env()) {
