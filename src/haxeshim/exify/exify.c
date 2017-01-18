@@ -1,5 +1,7 @@
 /**
- * Here comes a great illustration of my non-existent C skills. Seems to build ok with TCC.
+ * Here comes a great illustration of my non-existent C skills. 
+ * Seems to build ok with TinyCC.
+ * The escaping also seems to be just fine, but who knows ...
  */
 
 #include "stdio.h"
