@@ -127,6 +127,21 @@ class Resolver {
           ret.push('-cp');
           ret.push(absolute(interpolate(args[i++])));
           
+        case '-resource':
+          
+          ret.push('-resource');
+          
+          var res = args[i++];
+          
+          ret.push(
+            switch res.lastIndexOf('@') {
+              case -1: 
+                res;
+              case v:
+                absolute(res.substr(0, v)) + '@' + res.substr(v + 1);
+            }
+          );
+          
         case '-lib':
           
           var lib = args[i++];

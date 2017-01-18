@@ -59,3 +59,7 @@ This is a mix of both approaches. Libraries that are not found using scoped reso
 ## Security implications
 
 It is true that haxeshim kinda bypasses access control, allowing users to accidentally have their haxe command hijacked in some malicious way. Given though that anything running with the current user's privileges can tamper with the installed haxelibs and every haxelib using extraParams.hxml can execute arbitrary code with whatever privileges `haxe` was invoked with, we're not making it any worse.
+
+## Building
+
+To build, you will obviously need a Haxe version (haxe 3.4.0-rc.2 is known to work). Clone the repo recursively and then you can build.
