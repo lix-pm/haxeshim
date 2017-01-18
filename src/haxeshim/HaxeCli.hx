@@ -14,8 +14,8 @@ class HaxeCli {
       try f()
       catch (e:Error) 
         die(e.code, e.message)
-      catch (e:String) 
-        die(500, e);
+      catch (e:Dynamic) 
+        die(500, Std.string(e));
     
   static function main() 
     switch Sys.args() {

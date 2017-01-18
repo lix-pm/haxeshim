@@ -122,7 +122,7 @@ class Scope {
           e.throwSelf();
       }
   
-  public function resolve(args:Array<String>) 
+  public function resolve(args:Array<String>):Array<String>
     return resolver.resolve(args, resolveThroughHaxelib);
   
   static public function seek(?options:SeekingOptions) {

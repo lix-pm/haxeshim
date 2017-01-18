@@ -63,7 +63,7 @@ class Resolver {
     return ret.toString();
   }
   
-  public function resolve(args:Array<String>, haxelib:Array<String>->Array<String>) {
+  public function resolve(args:Array<String>, haxelib:Array<String>->Array<String>):Array<String> {
     
     this.ret = [];
     this.libs = [];
@@ -147,6 +147,12 @@ class Resolver {
               if (lib.indexOf(':') != -1 || !resolveInScope(lib).isSuccess())
                 libs.push(lib);
           }
+        case '-scoped-hxml':
+          var target = absolute(interpolate(args[i++]));
+          var parts = Scope.seek({ cwd: target.directory() }).resolve([target]);
+          
+          for (arg in parts)
+            ret.push(arg);
           
         case hxml if (hxml.endsWith('.hxml')):
           

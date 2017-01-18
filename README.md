@@ -1,9 +1,10 @@
 # Haxe Shim - a simple wrapper around Haxe
 
-Haxe is great. Greater than unicorns. Unfortunately decent solutions for handling different Haxe versions are like unicorns too: would be awesome but don't exist. Haxeshim tries to fill that gap. It does exactly two things:
+Haxe is great. Greater than unicorns. Unfortunately decent solutions for handling different Haxe versions are like unicorns too: would be awesome but don't exist. Haxeshim tries to fill that gap. It does exactly three things:
 	
 1. Allow having different haxe versions.
 2. Manage `-lib` params without haxelib.
+3. Add `-scoped-hxml <file>` to process hxml files while resolving paths relative to their location.
 
 At the bottom line this project merely decouples a number of things that are currently just mushed together in the standard Haxe distribution. The decomposition itself would be highly advisable to apply there too, but attempts to argue for that have shown no effect, so an independent effort would seem to be the only way forward.
 
