@@ -19,9 +19,13 @@ class Scope {
   
   static var CONFIG_FILE = '.haxerc';
   /**
-   * The root directory for haxeshim as configured when the scope was creates
+   * The root directory for haxeshim as configured when the scope was created
    */
   public var haxeshimRoot(default, null):String;
+  /**
+   * The directory that contains the different Haxe versions
+   */
+  public var versionDir(default, null):String;
   /**
    * Indicates whether the scope is global
    */
@@ -90,6 +94,7 @@ class Scope {
         throw 'invalid value $v for `resolveLibs` in $configFile';
     }
     
+    this.versionDir = '$haxeshimRoot/versions';
     this.haxelibRepo = '$haxeshimRoot/haxelib';
     this.haxeInstallation = getInstallation(config.version);
     this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/haxe_libraries']);
@@ -113,7 +118,7 @@ class Scope {
   }
   
   public function getInstallation(version:String) 
-    return new HaxeInstallation('$haxeshimRoot/versions/$version', version);
+    return new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
   
   function resolveThroughHaxelib(libs:Array<String>) 
     return 

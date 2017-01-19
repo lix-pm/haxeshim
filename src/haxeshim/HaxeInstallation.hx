@@ -8,23 +8,23 @@ class HaxeInstallation {
   public var compiler(default, null):String;
   public var haxelib(default, null):String;
   public var version(default, null):String;
-  public var libs(default, null):String;
+  public var haxelibRepo(default, null):String;
   
   
-  public function new(path:String, version:String, libs:String) {
+  public function new(path:String, version:String, haxelibRepo:String) {
     this.path = path;
     this.version = version;
     this.compiler = '$path/haxe$EXT';
     this.haxelib = '$path/haxelib$EXT';
     this.stdLib = '$path/std';
-    this.libs = libs;
+    this.haxelibRepo = haxelibRepo;
   }
   
   public function env() 
     return {
       HAXE_STD_PATH: stdLib,
       HAXEPATH: path,
-      HAXELIB_PATH: libs,
+      HAXELIB_PATH: haxelibRepo,
       HAXE_VERSION: version,
     }
   
