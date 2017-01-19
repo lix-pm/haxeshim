@@ -5,7 +5,7 @@ using tink.CoreApi;
 class HaxeCli {
     
   static function die(code, reason):Dynamic {
-    Sys.stderr().writeString(reason);
+    Sys.stderr().writeString('$reason\n');
     Sys.exit(code);    
     return throw 'unreachable';
   }
