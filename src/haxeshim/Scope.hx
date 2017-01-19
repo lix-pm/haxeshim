@@ -42,6 +42,11 @@ class Scope {
   public var cwd(default, null):String;
   
   /**
+   * The global haxelib repo on which haxelib operates.
+   */
+  public var haxelibRepo(default, null):String;
+  
+  /**
    * The data read from the config file.
    */
   public var config(default, null):Config;
@@ -85,8 +90,9 @@ class Scope {
         throw 'invalid value $v for `resolveLibs` in $configFile';
     }
     
+    this.haxelibRepo = '$haxeshimRoot/haxelib';
     this.haxeInstallation = getInstallation(config.version);
-    this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/libs']);
+    this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/haxe_libraries']);
   }
   
   public function delete() 
@@ -107,7 +113,7 @@ class Scope {
   }
   
   public function getInstallation(version:String) 
-    return new HaxeInstallation('$haxeshimRoot/versions/$version', version, '$haxeshimRoot/libs');
+    return new HaxeInstallation('$haxeshimRoot/versions/$version', version);
   
   function resolveThroughHaxelib(libs:Array<String>) 
     return 
@@ -168,10 +174,10 @@ class Scope {
   static public var DEFAULT_ROOT(default, null):String =  
     switch Sys.getEnv('HAXESHIM_ROOT') {
       case null | '':
-        if (IS_WINDOWS) 
-          Sys.getEnv('APPDATA') + '/haxe';
-        else 
-          '~/haxe';//no idea if this will actually work
+        Sys.getEnv(
+          if (IS_WINDOWS) 'APPDATA'
+          else 'HOME'
+        ) + '/haxe';//relying on env variables is always rather brave, but let's try this for now
       case v:
         v;
     };
