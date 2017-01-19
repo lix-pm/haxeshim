@@ -63,3 +63,32 @@ It is true that haxeshim kinda bypasses access control, allowing users to accide
 ## Building
 
 To build, you will obviously need a Haxe version (haxe 3.4.0-rc.2 is known to work). Clone the repo recursively and then you can build.
+
+## OS support
+
+### Windows
+
+Windows support seems ok on Windows 8.1 and 10.
+
+The tool does the following nasty things:
+  
+1. Places `.exe` files near the `haxe.cmd` and `haxelib.cmd` files that NPM creates. The `.exe` files to nothing but call the `.cmd` file of the same name. This is because calling `.cmd` in batch stops execution. Try running this from a batch file to observe the behavior:
+  
+  ```
+  haxe -version
+  haxe -version
+  haxe.cmd -version
+  haxe.cmd -version
+  ```
+  
+  It also places a fake `CHANGES.txt` into the npm command directory in a rather futile attempt to please FlashDevelop/HaxeDevelop.
+  
+2. Replaces the `haxe.exe` and `haxelib.exe` of the standard distribution, in case that one has precedence. The original files are backed up, just in case you wanna go back.
+
+### Linux
+
+Tested on the Ubuntu subsytem for windows. Seems to work.
+
+### MacOS
+
+No idea ...
