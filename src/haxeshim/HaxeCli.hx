@@ -40,7 +40,6 @@ class HaxeCli {
             args.push(scope.haxeInstallation.version);
           default:
         }
-        
         Sys.exit(gracefully(Exec.sync(scope.haxeInstallation.compiler, scope.cwd, gracefully(scope.resolve.bind(args)), scope.haxeInstallation.env()).sure));
     }
   

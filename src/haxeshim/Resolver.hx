@@ -72,7 +72,7 @@ class Resolver {
     
     return switch libs {
       case []: ret;
-      default: ret.concat(haxelib(libs));
+      default: haxelib(libs).concat(ret);
     }
   }
   
@@ -108,8 +108,12 @@ class Resolver {
           }
         case '#':
         default:
-          for (a in normalize(line))
-            ret.push(a);
+          switch line.trim() {
+            case '':
+            case v:
+              for (a in normalize(v))
+                ret.push(a);
+          }
       }
     
     return ret;
