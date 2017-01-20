@@ -22,6 +22,11 @@ class Scope {
    * The root directory for haxeshim as configured when the scope was created
    */
   public var haxeshimRoot(default, null):String;
+  
+  /**
+   * Directory where libraries can be cached.
+   */
+  public var libCache(default, null):String;
   /**
    * The directory that contains the different Haxe versions
    */
@@ -103,8 +108,9 @@ class Scope {
     
     this.versionDir = '$haxeshimRoot/versions';
     this.haxelibRepo = '$haxeshimRoot/haxelib';
+    this.libCache = '$haxeshimRoot/haxe_libraries';
     this.haxeInstallation = getInstallation(config.version);
-    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/haxe_libraries']);
+    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => libCache]);
   }
   
   public function delete() 
