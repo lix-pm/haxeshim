@@ -22,6 +22,31 @@ class HaxeCli {
       case ['--wait', Std.parseInt(_) => port]:
         
         new CompilerServer(port, Scope.seek());
+      
+      case ['--run', 'install-libs']:
+        
+        var scope = gracefully(Scope.seek.bind());
+        
+        var i = scope.getInstallationInstructions();
+        
+        var code = 0;
+        
+        switch i.missing {
+          case []:
+          case v:
+            code = 404;
+            for (m in v)
+              Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
+        }
+        
+        for (cmd in i.instructions) 
+          switch Exec.shell(cmd, Sys.getCwd()) {
+            case Failure(e):
+              code = e.code;
+            default:
+          }
+        
+        Sys.exit(code);
         
       case args:
         

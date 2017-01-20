@@ -30,10 +30,16 @@ class Scope {
    * Indicates whether the scope is global
    */
   public var isGlobal(default, null):Bool;
+  
   /**
    * The directory of the scope, where the `.haxerc` file was found and also where the `.scopedHaxeLibs` directory is expected
    */
   public var scopeDir(default, null):String;
+  /**
+   * The directory where metadata about the scoped directories is to be found.
+   */
+  public var scopeLibDir(default, null):String;
+  
   /**
    * Indicates the path the the scope's config file. This is likely to be `'$scopeDir/.haxerc'`, 
    * but you should rely on this field to avoid hardcoding assumptions that may break in the future.
@@ -64,6 +70,7 @@ class Scope {
     this.haxeshimRoot = haxeshimRoot;
     this.isGlobal = isGlobal;
     this.scopeDir = scopeDir;
+    this.scopeLibDir = '$scopeDir/haxe_libraries';
     this.cwd = cwd;
     
     configFile = '$scopeDir/$CONFIG_FILE';
@@ -97,7 +104,7 @@ class Scope {
     this.versionDir = '$haxeshimRoot/versions';
     this.haxelibRepo = '$haxeshimRoot/haxelib';
     this.haxeInstallation = getInstallation(config.version);
-    this.resolver = new Resolver(cwd, scopeDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/haxe_libraries']);
+    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => '$haxeshimRoot/haxe_libraries']);
   }
   
   public function delete() 
@@ -132,6 +139,44 @@ class Scope {
         case Failure(e):
           e.throwSelf();
       }
+      
+  public function getInstallationInstructions() {
+    
+    var missing = [],
+        instructions = [];
+        
+    for (child in scopeLibDir.readDirectory()) {
+      var path = '$scopeLibDir/$child';
+      if (!path.isDirectory() && path.endsWith('.hxml')) {
+        var args = resolve([path]);
+        var pos = 0,
+            max = args.length;
+        while (pos < max)
+          switch args[pos++] {
+            case '-cp':
+              var cp = args[pos++];
+              if (!cp.exists()) {
+                switch path.getContent().split('@install:') {
+                  case [v]:
+                    missing.push({
+                      lib: child,
+                      cp: cp,
+                    });
+                  case _.slice(1) => a:
+                    for (i in a)
+                      instructions.push(i.split('\n')[0].trim());
+                }
+              }
+            default:
+          }
+      }
+    }
+    
+    return {
+      missing: missing,
+      instructions: instructions,
+    }
+  }
   
   public function resolve(args:Array<String>):Array<String>
     return resolver.resolve(args, resolveThroughHaxelib);

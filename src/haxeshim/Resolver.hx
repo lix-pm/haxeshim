@@ -9,15 +9,15 @@ using tink.CoreApi;
 class Resolver {
   
   var cwd:String;
-  var scopeDir:String;
+  var libDir:String;
   var mode:LibResolution;
   var ret:Array<String>;
   var libs:Array<String>;
   var defaults:Map<String, String>;
   
-  public function new(cwd, scopeDir, mode, defaults) {
+  public function new(cwd, libDir, mode, defaults) {
     this.cwd = cwd;
-    this.scopeDir = scopeDir;
+    this.libDir = libDir;
     this.mode = mode;
     this.defaults = defaults;
   }
@@ -76,8 +76,11 @@ class Resolver {
     }
   }
   
+  static public function libHxml(libDir:String, libName:String)
+    return '$libDir/$libName.hxml';
+  
   function resolveInScope(lib:String) 
-    return switch '$scopeDir/haxe_libraries/$lib.hxml' {
+    return switch libHxml(libDir, lib) {
       case notFound if (!notFound.exists()):
         Failure('Cannot resolve `-lib $lib` because file $notFound is missing');
       case f: 
