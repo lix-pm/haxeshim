@@ -15,7 +15,7 @@ The project is currently based on nodejs for execution and distributed through N
 Haxeshim has a "root" directory, depending on platform:
 	
 - on Windows it is `%APPDATA%/haxe`
-- elsewhere it is `~/haxe`
+- elsewhere it is `${HOME}/haxe`
 
 It can always be overwritten with the `HAXESHIM_ROOT` environment variable.
 
