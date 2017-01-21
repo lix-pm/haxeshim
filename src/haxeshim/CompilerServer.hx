@@ -2,7 +2,15 @@ package haxeshim;
 
 import js.node.Buffer;
 import js.node.net.Socket;
+import js.node.stream.Readable;
+import js.node.stream.Writable;
+
 using tink.CoreApi;
+
+enum ServerKind {
+  Port(num:Int);
+  Stdio;
+}
 
 /**
  * This beauty exists because we may need to hotswap the running haxe version.
@@ -23,55 +31,64 @@ class CompilerServer {
     });          
   });  
   
-  public function new(port:Int, scope) {
-    this.scope = scope;
-    
-    var server = js.node.Net.createServer(function (cnx:Socket) {
+  function forward(input:IReadable, output:IWritable, options) {
+    var buf = [];
       
-      var buf = [];
-      
-      cnx.on('data', function (chunk:Buffer) {
-        switch chunk.indexOf(0) {
-          case -1:
-            buf.push(chunk);
-          case v:
+    input.on('data', function (chunk:Buffer) {
+      switch chunk.indexOf(0) {
+        case -1:
+          trace(chunk);
+          buf.push(chunk);
+        case v:
+          
+          buf.push(chunk.slice(0, v));
+          input.unshift(chunk.slice(v + 1));
+          
+          var args = Buffer.concat(buf).toString().split('\n');
+          buf = [];
+          var version =
+            switch args.indexOf('--haxe-version') {
+              case -1:
+                if (lastVersion == null)
+                  scope.haxeInstallation.version;
+                else
+                  lastVersion;
+              case v:
+                args.splice(v, 2).pop();
+            }
             
-            buf.push(chunk.slice(0, v));
-            cnx.unshift(chunk.slice(v + 1));
-            
-            var args = Buffer.concat(buf).toString().split('\n');
-            
-            var version =
-              switch args.indexOf('--haxe-version') {
-                case -1:
-                  if (lastVersion == null)
-                    scope.haxeInstallation.version;
-                  else
-                    lastVersion;
-                case v:
-                  args.splice(v, 2).pop();
-              }
+          connect(version).handle(function (o) switch o {
+            case Success(compiler):
               
-            connect(version).handle(function (o) switch o {
-              case Success(compiler):
-                
-                compiler.write(args.join('\n') + String.fromCharCode(0));
-                compiler.pipe(cnx, { end: true } );
-                
-              case Failure(e): 
-                
-                cnx.end(e.message + '\n' + String.fromCharCode(2) + '\n', 'utf8');
-            });
-            
-        }
-      });
-      
-      cnx.on('error', function () {});
-      
-      cnx.on('end', function () {});
+              compiler.write(args.join('\n') + String.fromCharCode(0));
+              compiler.pipe(output, options);
+              
+            case Failure(e): 
+              
+              output.end(e.message + '\n' + String.fromCharCode(2) + '\n', 'utf8');
+          });
+          
+      }
     });
     
-    server.listen(port);      
+    input.on('error', function () {});
+    
+    input.on('end', function () {});    
+  }
+  
+  public function new(kind:ServerKind, scope) {
+    this.scope = scope;
+    
+    switch kind {
+      case Port(port):
+        var server = js.node.Net.createServer(function (cnx:Socket) {
+          forward(cnx, cnx, { end: true } );
+        });
+        
+        server.listen(port);      
+      case Stdio:
+        forward(js.Node.process.stdin, js.Node.process.stderr, { end: false });
+    }
   }
   
   function disconnect():Promise<Noise>

@@ -19,9 +19,13 @@ class HaxeCli {
     
   static function main() 
     switch Sys.args() {
+      case ['--wait', 'stdio']:
+        
+        new CompilerServer(Stdio, Scope.seek());
+        
       case ['--wait', Std.parseInt(_) => port]:
         
-        new CompilerServer(port, Scope.seek());
+        new CompilerServer(Port(port), Scope.seek());
       
       case ['--run', 'install-libs']:
         
