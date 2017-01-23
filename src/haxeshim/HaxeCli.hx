@@ -32,30 +32,40 @@ class HaxeCli {
         
         new CompilerServer(Port(port), Scope.seek());
       
-      case ['--run', 'install-libs']:
+      case _.slice(0, 2) => ['--run', haxeShimExtension] if (haxeShimExtension.indexOf('-') != -1 || haxeShimExtension.toLowerCase() == haxeShimExtension):
         
+        var extArgs = args.slice(2);
         var scope = gracefully(Scope.seek.bind());
         
-        var i = scope.getInstallationInstructions();
+        switch haxeShimExtension {
+          case 'install-libs':
+            
+            var i = scope.getInstallationInstructions();
         
-        var code = 0;
-        
-        switch i.missing {
-          case []:
-          case v:
-            code = 404;
-            for (m in v)
-              Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
+            var code = 0;
+            
+            switch i.missing {
+              case []:
+              case v:
+                code = 404;
+                for (m in v)
+                  Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
+            }
+            
+            for (cmd in i.instructions) 
+              switch Exec.shell(cmd, Sys.getCwd()) {
+                case Failure(e):
+                  code = e.code;
+                default:
+              }
+            
+            Sys.exit(code);
+            
+          case 'resolve-args':
+            
+            Sys.println(gracefully(scope.resolve.bind(args)).join('\n'));
+            Sys.exit(0);
         }
-        
-        for (cmd in i.instructions) 
-          switch Exec.shell(cmd, Sys.getCwd()) {
-            case Failure(e):
-              code = e.code;
-            default:
-          }
-        
-        Sys.exit(code);
         
       case args:
         

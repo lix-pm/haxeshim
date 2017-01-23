@@ -1,3 +1,4 @@
-common.hxml
--main haxeshim.HaxeCli
+-cp .
 -js bin/haxeshim.js
+-main haxeshim.HaxeCli
+common.hxml
