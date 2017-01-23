@@ -13,6 +13,7 @@ class Resolver {
   var mode:LibResolution;
   var ret:Array<String>;
   var libs:Array<String>;
+  var resolved:Map<String, Bool>;
   var defaults:Map<String, String>;
   
   public function new(cwd, libDir, mode, defaults) {
@@ -67,6 +68,7 @@ class Resolver {
     
     this.ret = [];
     this.libs = [];
+    this.resolved = new Map();
     
     process(args);
     
@@ -80,13 +82,17 @@ class Resolver {
     return '$libDir/$libName.hxml';
   
   function resolveInScope(lib:String) 
-    return switch libHxml(libDir, lib) {
-      case notFound if (!notFound.exists()):
-        Failure('Cannot resolve `-lib $lib` because file $notFound is missing');
-      case f: 
-        processHxml(f);
-        Success(Noise);
-    }
+    return 
+      if (resolved[lib]) Success(Noise);
+      else
+        switch libHxml(libDir, lib) {
+          case notFound if (!notFound.exists()):
+            Failure('Cannot resolve `-lib $lib` because file $notFound is missing');
+          case f: 
+            resolved[lib] = true;
+            processHxml(f);
+            Success(Noise);
+        }
     
   function processHxml(file:String) {
     process(parseLines(file.getContent()));
