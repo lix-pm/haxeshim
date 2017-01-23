@@ -79,7 +79,14 @@ class Scope {
     this.cwd = cwd;
     
     configFile = '$scopeDir/$CONFIG_FILE';
-
+      
+    this.versionDir = '$haxeshimRoot/versions';
+    this.haxelibRepo = '$haxeshimRoot/haxelib';
+    this.libCache = '$haxeshimRoot/haxe_libraries';
+    reload();
+  }
+  
+  public function reload() {
     var src = 
       try configFile.getContent()
       catch (e:Dynamic) 
@@ -88,8 +95,6 @@ class Scope {
             'Global config file $configFile does not exist or cannot be opened';
           else
             'Unable to open file $configFile because $e';
-      
-    
     this.config =
       try src.parse()
       catch (e:Dynamic) {
@@ -106,11 +111,9 @@ class Scope {
         throw 'invalid value $v for `resolveLibs` in $configFile';
     }
     
-    this.versionDir = '$haxeshimRoot/versions';
-    this.haxelibRepo = '$haxeshimRoot/haxelib';
-    this.libCache = '$haxeshimRoot/haxe_libraries';
     this.haxeInstallation = getInstallation(config.version);
     this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => libCache]);
+    
   }
   
   public function delete() 

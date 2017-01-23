@@ -1,6 +1,8 @@
 package haxeshim;
 
+import js.Node.*;
 import js.node.Buffer;
+import js.node.child_process.ChildProcess;
 import js.node.net.Socket;
 import js.node.stream.Readable;
 import js.node.stream.Writable;
@@ -10,6 +12,11 @@ using tink.CoreApi;
 enum ServerKind {
   Port(num:Int);
   Stdio;
+}
+
+enum StdioState {
+  AwaitingHeader(buf:Buffer);
+  AwaitingData(buf:Buffer, total:Int);
 }
 
 /**
@@ -29,66 +36,179 @@ class CompilerServer {
         cb(Success(port));
       });
     });          
-  });  
-  
-  function forward(input:IReadable, output:IWritable, options) {
-    var buf = [];
-      
-    input.on('data', function (chunk:Buffer) {
-      switch chunk.indexOf(0) {
-        case -1:
-          trace(chunk);
-          buf.push(chunk);
-        case v:
-          
-          buf.push(chunk.slice(0, v));
-          input.unshift(chunk.slice(v + 1));
-          
-          var args = Buffer.concat(buf).toString().split('\n');
-          buf = [];
-          var version =
-            switch args.indexOf('--haxe-version') {
-              case -1:
-                if (lastVersion == null)
-                  scope.haxeInstallation.version;
-                else
-                  lastVersion;
-              case v:
-                args.splice(v, 2).pop();
-            }
-            
-          connect(version).handle(function (o) switch o {
-            case Success(compiler):
-              
-              compiler.write(args.join('\n') + String.fromCharCode(0));
-              compiler.pipe(output, options);
-              
-            case Failure(e): 
-              
-              output.end(e.message + '\n' + String.fromCharCode(2) + '\n', 'utf8');
-          });
-          
-      }
-    });
+  }, true);  
     
-    input.on('error', function () {});
-    
-    input.on('end', function () {});    
-  }
-  
   public function new(kind:ServerKind, scope) {
     this.scope = scope;
     
     switch kind {
       case Port(port):
-        var server = js.node.Net.createServer(function (cnx:Socket) {
-          forward(cnx, cnx, { end: true } );
+        waitOnPort(port);
+      case Stdio:
+        stdio();
+    }
+  }
+  
+  function stdio() {
+    
+    js.node.Fs.watch(scope.configFile, { persistent: false }, function (_, _) {
+      scope.reload();
+    });
+    
+    var child:ChildProcess = null;
+    
+    function quit() {
+      if (child != null) child.kill();
+    }
+    
+    process.stdin.on('end', quit);
+    process.stdin.on('close', quit);
+    
+    var state = AwaitingHeader(new Buffer(0));
+    
+    function frame(payload:Buffer) {
+      var ret = new Buffer(4 + payload.length);
+      ret.writeInt32LE(payload.length, 0);
+      payload.copy(ret, 4);
+      return ret;
+    }
+    
+    function processData(data:Buffer) {
+      
+      var postfix = new Buffer(0);
+      
+      var ctx = 
+        parseArgs(
+          switch data.indexOf(0x01) {
+            case -1:
+              data;
+            case v:
+              postfix = data.slice(v);
+              data.slice(0, v);
+          }
+        );
+        
+      
+      if (child == null || ctx.version != lastVersion) {
+        if (child != null) {
+          child.kill();
+          child.stderr.unpipe(process.stderr);
+        }
+        
+        var hx = scope.haxeInstallation;
+        child = js.node.ChildProcess.spawn(hx.compiler, ['--wait', 'stdio'], {
+          cwd: scope.cwd,
+          env: Exec.mergeEnv(hx.env()),
+          stdio: 'pipe',        
         });
         
-        server.listen(port);      
-      case Stdio:
-        forward(js.Node.process.stdin, js.Node.process.stderr, { end: false });
+        var old = child;
+        child.on(ChildProcessEvent.Exit, function (code, _) {
+          if (child == old) child = null;
+        });
+        
+        child.stderr.pipe(process.stderr);
+      }
+      
+      var first = new Buffer(scope.resolve(ctx.args).join('\n'));
+      child.stdin.write(frame(Buffer.concat([first, postfix])));
     }
+    
+    function reduce() {
+      while (true) {
+        var next = 
+          switch state {
+            case AwaitingHeader(buf) if (buf.length >= 4):
+              AwaitingData(buf.slice(4), buf.readInt32LE(0));
+            case AwaitingData(buf, total) if (buf.length >= total):
+              processData(buf.slice(0, total));
+              AwaitingHeader(buf.slice(total));
+            default:
+              state;
+          }
+          
+        if (state == next) break;
+        state = next;
+      }
+    }
+    
+    process.stdin.on('data', function (chunk:Buffer) {
+      state = switch state {
+        case AwaitingHeader(buf):
+          AwaitingHeader(Buffer.concat([buf, chunk]));
+        case AwaitingData(buf, left):
+          AwaitingData(Buffer.concat([buf, chunk]), left);
+      }
+      reduce();
+    });        
+  }
+  
+  function parseArgs(raw:Buffer) {
+    var args = raw.toString().split('\n');
+            
+    var version =
+      switch args.indexOf('--haxe-version') {
+        case -1:
+          if (lastVersion == null)
+            scope.haxeInstallation.version;
+          else
+            lastVersion;
+        case v:
+          args.splice(v, 2).pop();
+      }
+      
+    return {
+      version: version,
+      args: args,
+    }
+  }
+  
+  function waitOnPort(port:Int) {
+    var server = js.node.Net.createServer(function (cnx:Socket) {
+      var buf = [];
+        
+      cnx.on('data', function (chunk:Buffer) {
+        switch chunk.indexOf(0) {
+          case -1:
+            trace(chunk);
+            buf.push(chunk);
+          case v:
+            
+            buf.push(chunk.slice(0, v));
+            cnx.unshift(chunk.slice(v + 1));
+            
+            var args = Buffer.concat(buf).toString().split('\n');
+            buf = [];
+            var version =
+              switch args.indexOf('--haxe-version') {
+                case -1:
+                  if (lastVersion == null)
+                    scope.haxeInstallation.version;
+                  else
+                    lastVersion;
+                case v:
+                  args.splice(v, 2).pop();
+              }
+              
+            connect(version).handle(function (o) switch o {
+              case Success(compiler):
+                
+                compiler.write(args.join('\n') + String.fromCharCode(0));
+                compiler.pipe(cnx, { end: true });
+                
+              case Failure(e): 
+                
+                cnx.end(e.message + '\n' + String.fromCharCode(2) + '\n', 'utf8');
+            });
+            
+        }
+      });
+      
+      cnx.on('error', function () {});
+      
+      cnx.on('end', function () {});          
+    });
+    server.listen(port);      
   }
   
   function disconnect():Promise<Noise>

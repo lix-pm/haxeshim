@@ -6,7 +6,7 @@ using tink.CoreApi;
 
 class Exec {
   
-  static function mergeEnv(add:DynamicAccess<String>) {
+  static public function mergeEnv(add:DynamicAccess<String>) {
     var ret = Reflect.copy(js.Node.process.env);
     
     for (name in add.keys())

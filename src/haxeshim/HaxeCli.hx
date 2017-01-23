@@ -1,4 +1,5 @@
 package haxeshim;
+import haxe.PosInfos;
 
 using tink.CoreApi;
 
@@ -17,8 +18,12 @@ class HaxeCli {
       catch (e:Dynamic) 
         die(500, Std.string(e));
     
-  static function main() 
-    switch Sys.args() {
+  static function main() {
+    dispatch(Sys.args()); 
+  }
+    
+  static function dispatch(args:Array<String>) 
+    switch args {
       case ['--wait', 'stdio']:
         
         new CompilerServer(Stdio, Scope.seek());
