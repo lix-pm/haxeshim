@@ -130,7 +130,7 @@ class Scope {
     for (f in Reflect.fields(changed))
       Reflect.setField(config, f, Reflect.field(changed, f));
     
-    configFile.saveContent(config.stringify());
+    configFile.saveContent(config.stringify('  '));
   }
   
   public function getInstallation(version:String) 
