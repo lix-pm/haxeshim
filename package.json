@@ -1,6 +1,6 @@
 {
   "name": "haxeshim",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "bin": {
     "haxe": "bin/haxeshim.js",
     "haxelib": "bin/haxelibshim.js"
@@ -12,7 +12,7 @@
   },
   "scripts": {
     "postinstall": "node bin/postinstall.js"
-  },  
+  },
   "keywords": [
     "haxe"
   ],
