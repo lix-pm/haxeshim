@@ -1,10 +1,11 @@
 # Haxe Shim - a simple wrapper around Haxe
 
-Haxe is great. Greater than unicorns. Unfortunately decent solutions for handling different Haxe versions are like unicorns too: would be awesome but don't exist. Haxeshim tries to fill that gap. It does exactly three things:
+Haxe is great. Greater than unicorns. Unfortunately decent solutions for handling different Haxe versions are like unicorns too: would be awesome but don't exist. Haxeshim tries to fill that gap. It does the following things:
 	
 1. Allow having different haxe versions.
 2. Manage `-lib` params without haxelib.
 3. Add `-scoped-hxml <file>` to process hxml files while resolving paths relative to their location.
+4. Adds a few "extensions" for easier IDE integration.
 
 At the bottom line this project merely decouples a number of things that are currently just mushed together in the standard Haxe distribution. The decomposition itself would be highly advisable to apply there too, but attempts to argue for that have shown no effect, so an independent effort would seem to be the only way forward.
 
@@ -92,3 +93,18 @@ Tested on the Ubuntu subsytem for windows. Seems to work.
 ### MacOS
 
 No idea ...
+
+## Extensions
+
+You can run haxeshim extensions through `haxe --run <extension-name> [...args]`. Any `extension-name` must be lower case and contain at least one `-` sign to avoid collisions with `haxe --run <some.path.ClassName>`.
+
+Currently, the following extensions are implemented:
+  
+- `install-libs`: this will go through all library hxmls in `haxe_libraries` and in case of missing class paths will pick up `@install:` directives and execute them or report an error if none are present
+- `resolve-args`: will resolve all the following arguments based on haxeshim's rules and prints each resulting argument on a single line.
+- `show-version`: will report the current haxe version like so:
+  
+  ```
+  -D haxe-ver=<theVersion>
+  -cp <pathToStdLib>
+  ```

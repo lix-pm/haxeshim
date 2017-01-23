@@ -17,12 +17,41 @@ class HaxeCli {
         die(e.code, e.message)
       catch (e:Dynamic) 
         die(500, Std.string(e));
-    
-  static function main() {
-    dispatch(Sys.args()); 
+  
+  var scope:Scope;
+        
+  public function new(scope) {
+    this.scope = scope;
   }
+  
+  static function main() {
+    new HaxeCli(gracefully(Scope.seek.bind())).dispatch(Sys.args()); 
+  }
+  
+  public function installLibs() {
+    var i = scope.getInstallationInstructions();
+        
+    var code = 0;
     
-  static function dispatch(args:Array<String>) 
+    switch i.missing {
+      case []:
+      case v:
+        code = 404;
+        for (m in v)
+          Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
+    }
+    
+    for (cmd in i.instructions) 
+      switch Exec.shell(cmd, Sys.getCwd()) {
+        case Failure(e):
+          code = e.code;
+        default:
+      }
+    
+    Sys.exit(code);    
+  }
+  
+  function dispatch(args:Array<String>) 
     switch args {
       case ['--wait', 'stdio']:
         
@@ -32,7 +61,7 @@ class HaxeCli {
         
         new CompilerServer(Port(port), Scope.seek());
       
-      case _.slice(0, 2) => ['--run', haxeShimExtension] if (haxeShimExtension.indexOf('-') != -1 || haxeShimExtension.toLowerCase() == haxeShimExtension):
+      case _.slice(0, 2) => ['--run', haxeShimExtension] if (haxeShimExtension.indexOf('-') != -1 && haxeShimExtension.toLowerCase() == haxeShimExtension):
         
         var extArgs = args.slice(2);
         var scope = gracefully(Scope.seek.bind());
@@ -40,31 +69,29 @@ class HaxeCli {
         switch haxeShimExtension {
           case 'install-libs':
             
-            var i = scope.getInstallationInstructions();
-        
-            var code = 0;
-            
-            switch i.missing {
-              case []:
-              case v:
-                code = 404;
-                for (m in v)
-                  Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
-            }
-            
-            for (cmd in i.instructions) 
-              switch Exec.shell(cmd, Sys.getCwd()) {
-                case Failure(e):
-                  code = e.code;
-                default:
-              }
-            
-            Sys.exit(code);
+            installLibs();
             
           case 'resolve-args':
             
-            Sys.println(gracefully(scope.resolve.bind(args)).join('\n'));
+            Sys.println(gracefully(scope.resolve.bind(extArgs)).join('\n'));
             Sys.exit(0);
+            
+          case 'show-version':
+            
+            var version = 
+              switch Exec.eval(scope.haxeInstallation.compiler, scope.cwd, ['-version']) {
+                case Success(v):
+                  v.stdout.toString()
+                  + v.stderr.toString();
+                case Failure(e):
+                  die(e.code, e.message);
+              }
+            
+            Sys.println('-D haxe-ver=$version');
+            Sys.println('-cp ${scope.haxeInstallation.stdLib}');
+            
+          case v:
+            die(404, 'Unknown extension $v');
         }
         
       case args:
