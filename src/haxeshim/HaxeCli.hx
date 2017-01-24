@@ -1,6 +1,7 @@
 package haxeshim;
 
 using StringTools;
+using sys.FileSystem;
 using tink.CoreApi;
 
 class HaxeCli {
@@ -52,6 +53,27 @@ class HaxeCli {
     }
     
     Sys.exit(code);    
+  }
+  
+  
+  static public function checkClassPaths(args:Array<String>) {
+    var i = 0;
+    var invalid = [];
+    while (i < args.length)
+      switch args[i++] {
+        case '-cp':
+          var cp = args[i++];
+          try cp.readDirectory()
+          catch (e:Dynamic) invalid.push('classpath $cp is not a directory or cannot be read from');
+        default:
+      }
+      
+    switch invalid {
+      case []:
+      case v:
+        die(404, invalid.join('\n'));
+    }
+    return args;
   }
   
   function dispatch(args:Array<String>) 
@@ -120,7 +142,7 @@ class HaxeCli {
             args.push(scope.haxeInstallation.version);
           default:
         }
-        Sys.exit(gracefully(Exec.sync(scope.haxeInstallation.compiler, scope.cwd, gracefully(scope.resolve.bind(args)), scope.haxeInstallation.env()).sure));
+        Sys.exit(gracefully(Exec.sync(scope.haxeInstallation.compiler, scope.cwd, checkClassPaths(gracefully(scope.resolve.bind(args))), scope.haxeInstallation.env()).sure));
     }
   
   

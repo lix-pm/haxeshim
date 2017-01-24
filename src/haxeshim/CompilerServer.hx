@@ -110,7 +110,7 @@ class CompilerServer {
         child.stderr.pipe(process.stderr);
       }
       
-      var first = new Buffer(scope.resolve(ctx.args).join('\n'));
+      var first = new Buffer(HaxeCli.checkClassPaths(scope.resolve(ctx.args)).join('\n'));
       child.stdin.write(frame(Buffer.concat([first, postfix])));
     }
     

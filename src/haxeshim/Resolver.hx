@@ -15,6 +15,7 @@ class Resolver {
   var libs:Array<String>;
   var resolved:Map<String, Bool>;
   var defaults:Map<String, String>;
+  var errors:Array<Error>;
   
   public function new(cwd, libDir, mode, defaults) {
     this.cwd = cwd;
@@ -68,9 +69,16 @@ class Resolver {
     
     this.ret = [];
     this.libs = [];
+    this.errors = [];
     this.resolved = new Map();
     
     process(args);
+    
+    switch errors {
+      case []:
+      case v:
+        throw v.map(function (e) return e.message).join('\n');
+    }
     
     return switch libs {
       case []: ret;
@@ -87,7 +95,7 @@ class Resolver {
       else
         switch libHxml(libDir, lib) {
           case notFound if (!notFound.exists()):
-            Failure('Cannot resolve `-lib $lib` because file $notFound is missing');
+            Failure(new Error(NotFound, 'Cannot resolve `-lib $lib` because file $notFound is missing'));
           case f: 
             resolved[lib] = true;
             processHxml(f);
@@ -167,7 +175,10 @@ class Resolver {
             case Scoped:
               
               if (lib.indexOf(':') == -1)
-                resolveInScope(lib).sure();
+                switch resolveInScope(lib) {
+                  case Failure(e): errors.push(e);
+                  default:
+                }
               else
                 throw 'Invalid `-lib $lib`. Version specification not supported in scoped mode';
                 
