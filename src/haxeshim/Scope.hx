@@ -157,7 +157,8 @@ class Scope {
     for (child in scopeLibDir.readDirectory()) {
       var path = '$scopeLibDir/$child';
       if (!path.isDirectory() && path.endsWith('.hxml')) {
-        var args = resolve([path]);
+        var hxml = path.getContent();
+        var args = Resolver.parseLines(hxml);
         var pos = 0,
             max = args.length;
         while (pos < max)
@@ -165,7 +166,7 @@ class Scope {
             case '-cp':
               var cp = args[pos++];
               if (!cp.exists()) {
-                switch path.getContent().split('@install:') {
+                switch hxml.split('@install:') {
                   case [v]:
                     missing.push({
                       lib: child,
