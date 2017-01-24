@@ -1,6 +1,6 @@
 package haxeshim;
-import haxe.PosInfos;
 
+using StringTools;
 using tink.CoreApi;
 
 class HaxeCli {
@@ -28,7 +28,7 @@ class HaxeCli {
     new HaxeCli(gracefully(Scope.seek.bind())).dispatch(Sys.args()); 
   }
   
-  public function installLibs() {
+  public function installLibs(silent:Bool) {
     var i = scope.getInstallationInstructions();
         
     var code = 0;
@@ -41,12 +41,15 @@ class HaxeCli {
           Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
     }
     
-    for (cmd in i.instructions) 
+    for (cmd in i.instructions) {
+      if (!silent)
+        Sys.println(cmd);
       switch Exec.shell(cmd, Sys.getCwd()) {
         case Failure(e):
           code = e.code;
         default:
       }
+    }
     
     Sys.exit(code);    
   }
@@ -63,26 +66,32 @@ class HaxeCli {
       
       case _.slice(0, 2) => ['--run', haxeShimExtension] if (haxeShimExtension.indexOf('-') != -1 && haxeShimExtension.toLowerCase() == haxeShimExtension):
         
-        var extArgs = args.slice(2);
+        var args = args.slice(2);
         var scope = gracefully(Scope.seek.bind());
         
         switch haxeShimExtension {
           case 'install-libs':
             
-            installLibs();
+            installLibs(switch args {
+              case ['--silent']: true;
+              case []: false;
+              default: die(422, 'unexpected arguments $args');
+            });
             
           case 'resolve-args':
             
-            Sys.println(gracefully(scope.resolve.bind(extArgs)).join('\n'));
+            Sys.println(gracefully(scope.resolve.bind(args)).join('\n'));
             Sys.exit(0);
             
           case 'show-version':
             
+            if (args.length > 0)
+              die(422, 'too many arguments');
+            
             var version = 
               switch Exec.eval(scope.haxeInstallation.compiler, scope.cwd, ['-version']) {
                 case Success(v):
-                  v.stdout.toString()
-                  + v.stderr.toString();
+                  (v.stdout.toString() + v.stderr.toString()).trim();
                 case Failure(e):
                   die(e.code, e.message);
               }
