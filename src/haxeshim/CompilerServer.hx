@@ -95,6 +95,8 @@ class CompilerServer {
           child.stderr.unpipe(process.stderr);
         }
         
+        lastVersion = ctx.version;
+        
         var hx = scope.haxeInstallation;
         child = js.node.ChildProcess.spawn(hx.compiler, ['--wait', 'stdio'], {
           cwd: scope.cwd,
@@ -170,7 +172,6 @@ class CompilerServer {
       cnx.on('data', function (chunk:Buffer) {
         switch chunk.indexOf(0) {
           case -1:
-            trace(chunk);
             buf.push(chunk);
           case v:
             
