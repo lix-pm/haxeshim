@@ -29,7 +29,7 @@ class PostInstall {
   
   static function main() 
     switch Sys.systemName() {
-      case 'Windows':
+      case 'Windows' if (!!(untyped process.env["npm_config_global"])): //wohooo \o/
         for (path in Std.string(ChildProcess.spawnSync('where', ['haxe']).stdout).split('\n').map(StringTools.trim).map(Path.new)) {
           switch path {
             case { ext: 'cmd', dir: npm }:
