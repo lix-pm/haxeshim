@@ -67,23 +67,45 @@ class Resolver {
   
   public function resolve(args:Array<String>, haxelib:Array<String>->Array<String>):Array<String> {
     
-    this.ret = [];
-    this.libs = [];
-    this.errors = [];
-    this.resolved = new Map();
-    
-    process(args);
-    
-    switch errors {
-      case []:
-      case v:
-        throw v.map(function (e) return e.message).join('\n');
+    function doResolve(args:Array<String>) {
+      this.ret = [];
+      this.libs = [];
+      this.errors = [];
+      this.resolved = new Map();
+      
+      process(args);
+      
+      switch errors {
+        case []:
+        case v:
+          throw v.map(function (e) return e.message).join('\n');
+      }
+      
+      return switch libs {
+        case []: ret;
+        default: haxelib(libs).concat(ret);
+      }    
     }
     
-    return switch libs {
-      case []: ret;
-      default: haxelib(libs).concat(ret);
+    var start = 0,
+        pos = 0, 
+        ret = [];
+        
+    function flush() {
+      ret = ret.concat(doResolve(args.slice(start, pos)));
+      start = pos;
     }
+        
+    while (pos < args.length) 
+      switch args[pos++] {
+        case '--next' | '--each':
+          flush();
+        default:
+      }
+      
+    flush();
+    
+    return ret;
   }
   
   static public function libHxml(libDir:String, libName:String)
