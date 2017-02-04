@@ -112,9 +112,15 @@ class Scope {
     }
     
     this.haxeInstallation = getInstallation(config.version);
-    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, ['HAXESHIM_LIBCACHE' => libCache]);
+    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, getDefault);
     
   }
+
+  public function getDefault(variable:String)
+    return switch variable {
+      case 'HAXESHIM_LIBCACHE': libCache;
+      default: null;
+    }
   
   public function delete() 
     this.configFile.deleteFile();
@@ -164,7 +170,8 @@ class Scope {
         while (pos < max)
           switch args[pos++] {
             case '-cp':
-              var cp = args[pos++];
+              var cp = Resolver.interpolate(args[pos++], getDefault);
+              
               if (!cp.exists()) {
                 switch hxml.split('@install:') {
                   case [v]:

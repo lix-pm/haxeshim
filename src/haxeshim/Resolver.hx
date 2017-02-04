@@ -14,7 +14,7 @@ class Resolver {
   var ret:Array<String>;
   var libs:Array<String>;
   var resolved:Map<String, Bool>;
-  var defaults:Map<String, String>;
+  var defaults:String->Null<String>;
   var errors:Array<Error>;
   
   public function new(cwd, libDir, mode, defaults) {
@@ -24,7 +24,7 @@ class Resolver {
     this.defaults = defaults;
   }
   
-  function interpolate(s:String) {
+  static public function interpolate(s:String, defaults:String->Null<String>) {
     if (s.indexOf("${") == -1)
       return s;
       
@@ -50,7 +50,7 @@ class Resolver {
           ret.add(
             switch Sys.getEnv(name) {
               case '' | null:
-                switch defaults[name] {
+                switch defaults(name) {
                   case null:
                     throw 'unknown variable $name';
                   case v: v;
@@ -160,7 +160,8 @@ class Resolver {
   
   function process(args:Array<String>) {
     var i = 0,
-    max = args.length;
+        max = args.length,
+        interpolate = interpolate.bind(_, defaults);
           
     while (i < max)
       switch args[i++].trim() {
