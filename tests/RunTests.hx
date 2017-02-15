@@ -19,7 +19,7 @@ class TestResolution extends haxe.unit.TestCase {
   function testNext() {
     var r = new haxeshim.Resolver(Sys.getCwd(), null, Haxelib, function (v) throw 'assert');
     assertEquals(
-      ["--macro", "Sys.println('before')", "--next", "-lib","tink_core","-main","Main","--interp"].join('\n')
+      ["--macro", "Sys.println('before')", "--run", "Main1", "--next", "-lib", "tink_core", "--run", "Main2", "-lib", "foo"].join('\n')
       ,r.resolve(['tests/build.hxml'], function (libs) {
         var ret = [];
         for (l in libs) {

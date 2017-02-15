@@ -85,7 +85,10 @@ class Resolver {
       var ret = [],
           libs = [], 
           i = 0, 
-          max = args.length;
+          max = switch args.indexOf('--run') {
+            case -1: args.length;
+            case v: v;
+          }
 
       while (i < max) 
         switch args[i++] {
@@ -94,6 +97,8 @@ class Resolver {
           case v:
             ret.push(v);
         }
+
+      ret = ret.concat(args.slice(max));
       
       return switch libs {
         case []: ret;
