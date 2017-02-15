@@ -12,6 +12,7 @@ haxe:
 install:
   - haxelib install travix
   - haxelib run travix install
+  - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs
 
 script:
   - haxelib run travix node
