@@ -1,0 +1,5 @@
+--macro Sys.println('before')
+--next
+-lib tink_core
+-main Main
+--interp

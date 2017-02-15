@@ -11,5 +11,8 @@
   "releasenote": "initial release",
   "version": "0.0.0",
   "url": "https://github.com/lix-pm/haxeshim/",
-  "dependencies": {}
+  "dependencies": {
+    "tink_core": "",
+    "hxnodejs": ""
+  }
 }
