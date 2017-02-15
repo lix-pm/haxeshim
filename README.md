@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/lix-pm/haxeshim.svg?branch=master)](https://travis-ci.org/lix-pm/haxeshim)
+
 # Haxe Shim - a simple wrapper around Haxe
 
 Haxe is great. Greater than unicorns. Unfortunately decent solutions for handling different Haxe versions are like unicorns too: would be awesome but don't exist. Haxeshim tries to fill that gap. It does the following things:
