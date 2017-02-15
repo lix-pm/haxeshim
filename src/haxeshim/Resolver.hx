@@ -12,7 +12,6 @@ class Resolver {
   var libDir:String;
   var mode:LibResolution;
   var ret:Array<String>;
-  var libs:Array<String>;
   var resolved:Map<String, Bool>;
   var defaults:String->Null<String>;
   var errors:Array<Error>;
@@ -66,20 +65,35 @@ class Resolver {
   }
   
   public function resolve(args:Array<String>, haxelib:Array<String>->Array<String>):Array<String> {
+    this.ret = [];
+    this.errors = [];
+    this.resolved = new Map();
     
-    function doResolve(args:Array<String>) {
-      this.ret = [];
-      this.libs = [];
-      this.errors = [];
-      this.resolved = new Map();
-      
-      process(args);
-      
-      switch errors {
-        case []:
-        case v:
-          throw v.map(function (e) return e.message).join('\n');
-      }
+    process(args);
+    
+    switch errors {
+      case []:
+      case v:
+        throw v.map(function (e) return e.message).join('\n');
+    }    
+
+    var start = 0,
+        pos = 0, 
+        final = []; 
+    
+    function libs(args:Array<String>) {
+      var ret = [],
+          libs = [], 
+          i = 0, 
+          max = args.length;
+
+      while (i < max) 
+        switch args[i++] {
+          case '-lib':
+            libs.push(args[i++]);
+          case v:
+            ret.push(v);
+        }
       
       return switch libs {
         case []: ret;
@@ -87,17 +101,13 @@ class Resolver {
       }    
     }
     
-    var start = 0,
-        pos = 0, 
-        ret = [];
-        
     function flush() {
-      ret = ret.concat(doResolve(args.slice(start, pos)));
+      final = final.concat(libs(ret.slice(start, pos)));
       start = pos;
     }
         
-    while (pos < args.length) 
-      switch args[pos++] {
+    while (pos < ret.length) 
+      switch ret[pos++] {
         case '--next' | '--each':
           flush();
         default:
@@ -105,7 +115,7 @@ class Resolver {
       
     flush();
     
-    return ret;
+    return final;
   }
   
   static public function libHxml(libDir:String, libName:String)
@@ -189,12 +199,13 @@ class Resolver {
         case '-lib':
           
           var lib = args[i++];
-          
+          function add() {
+            ret.push('-lib');
+            ret.push(lib);
+          }
           switch mode {
             case Haxelib:
-              
-              libs.push(lib);
-              
+              add();              
             case Scoped:
               
               if (lib.indexOf(':') == -1)
@@ -207,7 +218,7 @@ class Resolver {
                 
             case Mixed:
               if (lib.indexOf(':') != -1 || !resolveInScope(lib).isSuccess())
-                libs.push(lib);
+                add();
           }
         case '-scoped-hxml':
           var target = absolute(interpolate(args[i++]));
