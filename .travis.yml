@@ -13,9 +13,10 @@ install:
   - haxelib install travix
   - haxelib run travix install
   - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs
+  - mkdir -p ${HOME}/haxe/neko
   - curl -s -L --retry 3 'http://nekovm.org/_media/neko-2.1.0-linux64.tar.gz' | tar -C ${HOME}/haxe/neko -x -z --strip-components=1 -f -
 
 script:
   - haxelib run travix node
   - haxe all.hxml
-  - node bin/haxelibshim.js
+  - rm -rf mydir ${HOME}/neko && node bin/haxelibshim.js
