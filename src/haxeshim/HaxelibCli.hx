@@ -1,14 +1,16 @@
 package haxeshim;
 
-using tink.CoreApi;
-
 class HaxelibCli {
 
   static function main() {
     var installation = Scope.seek().haxeInstallation;
+    var env = installation.env();
     
+    if (Scope.IS_WINDOWS)
+      Sys.putEnv('PATH', env['PATH']);
+
     Sys.exit(
-      switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), installation.env()) {
+      switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), env) {
         case Success(c):
           c;
         case Failure(e):

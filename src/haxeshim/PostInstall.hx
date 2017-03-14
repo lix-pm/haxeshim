@@ -13,25 +13,32 @@ class PostInstall {
   
   static var exifier = Resource.getBytes('exify');
   
-  static function exify(dir) {
-    
-    
+  static function exify(dir) {    
+
     for (name in ['haxe', 'haxelib']) {
       var exe = '$dir/$name.exe';
       if (exe.exists() && !'$exe.bak'.exists())
         exe.rename('$exe.bak');
       exe.saveBytes(exifier);
     }
-    
-    if (!'$dir/CHANGES.txt'.exists())
-      '$dir/CHANGES.txt'.saveContent("0: 0\nI'm only here to please FlashDevelop ... which I seem to fail at");
+
   }
   
+  static var GLOBAL:Bool = !!(untyped process.env["npm_config_global"]); //wohooo \o/
+
+  static var WINDOWS = Sys.systemName() == 'Windows';
+
+  static function which(name) {
+    return 
+      Std.string(ChildProcess.spawnSync(if (WINDOWS) 'where' else 'which', [name]).stdout).split('\n').map(StringTools.trim);
+  }
+
   static function main() 
-    switch Sys.systemName() {
-      case 'Windows' if (!!(untyped process.env["npm_config_global"])): //wohooo \o/
-        for (path in Std.string(ChildProcess.spawnSync('where', ['haxe']).stdout).split('\n').map(StringTools.trim).map(Path.new)) {
-          switch path {
+    if (GLOBAL) {
+
+      if (WINDOWS) {
+        for (p in which('haxe')) 
+          switch new Path(p) {
             case { ext: 'cmd', dir: npm }:
               
               exify(npm);
@@ -39,11 +46,10 @@ class PostInstall {
             case { ext: 'exe', dir: std } if (Lambda.foreach(['CHANGES.txt', 'CONTRIB.txt', 'LICENSE.txt'], function (file) return '$std/$file'.exists())):
               
               exify(std);
-              
-            default: 
+
+            default:            
           }
-        }
-      default:
-    }
-  
+      }
+
+  }
 }
