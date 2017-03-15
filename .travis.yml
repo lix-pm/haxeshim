@@ -1,22 +1,23 @@
 sudo: required
 dist: trusty
 
-language: haxe
-
 os:
   - linux
-  
-haxe:
-  - "3.4.0"
     
 install:
+
+  - mkdir -p ${HOME}/haxe/neko
+  - mkdir -p ${HOME}/haxe/versions
+  - echo "{ \"version\": \"3.4.0\" }" > ${HOME}/haxe/.haxerc
+
+  - curl -s -L --retry 3 'http://nekovm.org/_media/neko-2.1.0-linux64.tar.gz' | tar -C ${HOME}/haxe/neko -x -z --strip-components=1 -f -
+  - curl -s -L --retry 3 'http://haxe.org/website-content/downloads/3.4.0/downloads/haxe-3.4.0-linux64.tar.gz' | tar -C ${HOME}/haxe/versions/3.4.0 -x -z --strip-components=1 -f -
+  
+  - npm install . -g
   - haxelib install travix
   - haxelib run travix install
   - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs
-  - mkdir -p ${HOME}/haxe/neko
-  - curl -s -L --retry 3 'http://nekovm.org/_media/neko-2.1.0-linux64.tar.gz' | tar -C ${HOME}/haxe/neko -x -z --strip-components=1 -f -
 
 script:
   - haxelib run travix node
   - haxe all.hxml
-  - rm -rf mydir ${HOME}/neko && node bin/haxelibshim.js
