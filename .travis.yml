@@ -5,7 +5,7 @@ language: node_js
 node_js: 6
 
 env:
- - "HAXERC=\"{ \"version\": \"3.4.0\" }\""
+ - HAXERC='{"version":"3.4.0"}'
 
 os:
   - linux
