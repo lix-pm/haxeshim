@@ -18,7 +18,7 @@ install:
 
   - curl -s -L --retry 3 'http://nekovm.org/_media/neko-2.1.0-linux64.tar.gz' | tar -C ${HOME}/haxe/neko -x -z --strip-components=1 -f -
   - curl -s -L --retry 3 'http://haxe.org/website-content/downloads/3.4.0/downloads/haxe-3.4.0-linux64.tar.gz' | tar -C ${HOME}/haxe/versions/3.4.0 -x -z --strip-components=1 -f -
-
+  - ${HOME}/haxe/versions/3.4.0/haxe all.hxml
   - npm install . -g
   - haxelib install travix
   - haxelib run travix install
