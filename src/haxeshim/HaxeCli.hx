@@ -23,6 +23,11 @@ class HaxeCli {
         
   public function new(scope) {
     this.scope = scope;
+
+    var env = scope.haxeInstallation.env();
+    if (Scope.IS_WINDOWS)
+      Sys.putEnv('PATH', env['PATH']);
+    
   }
   
   static function main() {
