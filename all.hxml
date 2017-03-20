@@ -1,5 +1,7 @@
 haxeshim.hxml
 --next
+nekoshim.hxml
+--next
 haxelibshim.hxml
 --next
 postinstall.hxml

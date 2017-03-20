@@ -1,0 +1,3 @@
+common.hxml
+-main haxeshim.NekoCli
+-js bin/nekoshim.js

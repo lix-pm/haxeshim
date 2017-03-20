@@ -30,3 +30,4 @@ install:
 script:
   - haxelib run travix node
   - haxe all.hxml
+  - neko -version
