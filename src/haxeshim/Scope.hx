@@ -140,7 +140,7 @@ class Scope {
   }
   
   public function getInstallation(version:String) 
-    return new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
+    return new HaxeInstallation('$versionDir/$version', version, haxelibRepo, '$haxeshimRoot/neko');//TODO: the neko path probably should not be hardcoded
   
   function resolveThroughHaxelib(libs:Array<String>) 
     return 

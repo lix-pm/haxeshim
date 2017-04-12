@@ -1,9 +1,10 @@
 {
   "name": "haxeshim",
-  "version": "0.5.5",
+  "version": "0.6.2",
   "bin": {
     "haxe": "bin/haxeshim.js",
-    "haxelib": "bin/haxelibshim.js"
+    "haxelib": "bin/haxelibshim.js",
+    "neko": "bin/nekoshim.js"
   },
   "description": "Haxe shim to deal with cooexisting versions.",
   "repository": {

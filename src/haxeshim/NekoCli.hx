@@ -1,6 +1,6 @@
 package haxeshim;
 
-class HaxelibCli {
+class NekoCli {
 
   static function main() {
     var installation = Scope.seek().haxeInstallation;
@@ -8,9 +8,11 @@ class HaxelibCli {
     
     if (Scope.IS_WINDOWS)
       Sys.putEnv('PATH', env['PATH']);
-
+    var binary = 
+      if (Scope.IS_WINDOWS) 'neko.exe';
+      else 'neko';
     Sys.exit(
-      switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), env) {
+      switch Exec.sync(installation.nekoPath + '/$binary', Sys.getCwd(), Sys.args(), env) {
         case Success(c):
           c;
         case Failure(e):

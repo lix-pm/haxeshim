@@ -1,0 +1,6 @@
+--macro Sys.println('before')
+--run Main1
+--next
+-lib tink_core
+--run Main2
+-lib foo
