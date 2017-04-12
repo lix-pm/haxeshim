@@ -60,7 +60,16 @@ class CompilerServer {
     function quit() {
       if (child != null) child.kill();
     }
+
+    process.on('exit', quit);
+
+    //See http://stackoverflow.com/a/31562361/111466
     
+      function cleanExit() process.exit();
+
+      process.on('SIGINT', cleanExit); // catch ctrl-c
+      process.on('SIGTERM', cleanExit); // catch kill
+
     process.stdin.on('end', quit);
     process.stdin.on('close', quit);
     
