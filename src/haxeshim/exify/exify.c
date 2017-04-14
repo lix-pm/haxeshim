@@ -32,9 +32,9 @@ int main(int argc, const char *argv[])
 {
 	char str[0x10000];//65K should be enough, right?
 
-	_splitpath(argv[0], NULL, NULL, str, NULL);
+	
 
-	strcat(str, ".cmd");
+	strcat(str, "abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789");
 
 	for (int i = 1; i < argc; ++i) {
 		copyArg(str, argv[i]);

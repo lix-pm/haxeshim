@@ -83,14 +83,17 @@ class HaxeCli {
   
   function dispatch(args:Array<String>) 
     switch args {
-      case ['--wait', 'stdio']:
+      case _.indexOf('--wait') => wait if (wait >=0 && wait < args.length - 1):
+
+        new CompilerServer(
+          switch args.splice(wait, 2).pop() {
+            case 'stdio': Stdio;
+            case Std.parseInt(_) => port: Port(port);
+          },
+          Scope.seek(),
+          args
+        );
         
-        new CompilerServer(Stdio, Scope.seek());
-        
-      case ['--wait', Std.parseInt(_) => port]:
-        
-        new CompilerServer(Port(port), Scope.seek());
-      
       case _.slice(0, 2) => ['--run', haxeShimExtension] if (haxeShimExtension.indexOf('-') != -1 && haxeShimExtension.toLowerCase() == haxeShimExtension):
         
         var args = args.slice(2);

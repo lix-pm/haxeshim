@@ -38,7 +38,7 @@ class CompilerServer {
     });          
   }, true);  
     
-  public function new(kind:ServerKind, scope) {
+  public function new(kind:ServerKind, scope, args:Array<String>) {
     this.scope = scope;
     
     switch kind {
