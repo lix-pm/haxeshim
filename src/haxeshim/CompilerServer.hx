@@ -27,7 +27,8 @@ class CompilerServer {
   var scope:Scope;
   var waiting:Promise<Waiting>;
   var lastVersion:String;
-  
+  var args:Array<String>;
+
   var freePort:Promise<Int> = Future.async(function (cb) {
     var test = js.node.Net.createServer();
     test.listen(0, function () {
@@ -38,7 +39,8 @@ class CompilerServer {
     });          
   }, true);  
     
-  public function new(kind:ServerKind, scope, args:Array<String>) {
+  public function new(kind:ServerKind, scope, args) {
+    this.args = args;
     this.scope = scope;
     
     switch kind {
@@ -107,7 +109,7 @@ class CompilerServer {
         lastVersion = ctx.version;
         
         var hx = scope.haxeInstallation;
-        child = js.node.ChildProcess.spawn(hx.compiler, ['--wait', 'stdio'], {
+        child = js.node.ChildProcess.spawn(hx.compiler, this.args.concat(['--wait', 'stdio']), {
           cwd: scope.cwd,
           env: Exec.mergeEnv(hx.env()),
           stdio: 'pipe',        
@@ -236,7 +238,7 @@ class CompilerServer {
         return freePort.next(function (port):Waiting {
           var installation = scope.getInstallation(version);
           
-          var proc = Exec.async(installation.compiler, scope.cwd, ['--wait', Std.string(port)], installation.env());
+          var proc = Exec.async(installation.compiler, scope.cwd, this.args.concat(['--wait', Std.string(port)]), installation.env());
           
           return {
             died: Future.async(function (cb) {
