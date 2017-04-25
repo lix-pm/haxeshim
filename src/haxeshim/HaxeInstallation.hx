@@ -1,7 +1,7 @@
 package haxeshim;
 
 class HaxeInstallation {
-  static var EXT = if (Scope.IS_WINDOWS) '.exe' else '';  
+  static var EXT = if (Os.IS_WINDOWS) '.exe' else '';  
   
   public var path(default, null):String;
   public var stdLib(default, null):String;
@@ -19,7 +19,7 @@ class HaxeInstallation {
     this.haxelib = '$path/haxelib$EXT';
     this.stdLib = '$path/std';
     this.haxelibRepo = haxelibRepo;
-    this.nekoPath = nekoPath;
+    this.nekoPath = StringTools.replace(nekoPath, '/', '\\');
   }
   
   public function env() {
@@ -31,14 +31,13 @@ class HaxeInstallation {
     }
 
     function addNeko(varName:String, sep:String = ':')
-      switch Sys.getEnv(varName) {
-        case v if (v.indexOf(nekoPath) == -1):
-          ret[varName] = [
-            Sys.getEnv(varName),
-            nekoPath
-          ].join(sep);
-        default:
-      }
+      ret[varName] =
+        switch Sys.getEnv(varName) {
+          case withNeko if (withNeko.indexOf(nekoPath) != -1):
+            withNeko;
+          case v:
+            '$v$sep$nekoPath';
+        }
 
     switch Sys.systemName() {
       case 'Windows':

@@ -1,7 +1,7 @@
 {
     "version": "0.1.0",
     "command": "haxe",
-    "args": ["haxeshim.hxml", "--next", "-cmd", "haxelib run travix node"],
+    "args": ["haxeshim.hxml", "--next", "-cmd", "node bin/haxeshim.js -lib submit --run Prepare ../../tink/core"],
     "problemMatcher": {
         "owner": "haxe",
         "pattern": {

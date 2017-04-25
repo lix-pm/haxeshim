@@ -6,10 +6,10 @@ class NekoCli {
     var installation = Scope.seek().haxeInstallation;
     var env = installation.env();
     
-    if (Scope.IS_WINDOWS)
+    if (Os.IS_WINDOWS)
       Sys.putEnv('PATH', env['PATH']);
     var binary = 
-      if (Scope.IS_WINDOWS) 'neko.exe';
+      if (Os.IS_WINDOWS) 'neko.exe';
       else 'neko';
     Sys.exit(
       switch Exec.sync(installation.nekoPath + '/$binary', Sys.getCwd(), Sys.args(), env) {

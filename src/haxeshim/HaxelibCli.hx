@@ -6,9 +6,9 @@ class HaxelibCli {
     var installation = Scope.seek().haxeInstallation;
     var env = installation.env();
     
-    if (Scope.IS_WINDOWS)
+    if (Os.IS_WINDOWS)
       Sys.putEnv('PATH', env['PATH']);
-
+      
     Sys.exit(
       switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), env) {
         case Success(c):

@@ -25,7 +25,7 @@ class HaxeCli {
     this.scope = scope;
 
     var env = scope.haxeInstallation.env();
-    if (Scope.IS_WINDOWS)
+    if (Os.IS_WINDOWS)
       Sys.putEnv('PATH', env['PATH']);
     
   }

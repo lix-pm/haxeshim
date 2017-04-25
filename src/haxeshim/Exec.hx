@@ -5,13 +5,20 @@ import js.node.Buffer;
 using tink.CoreApi;
 
 class Exec {
-  
   static public function mergeEnv(add:DynamicAccess<String>) {
-    var ret = Reflect.copy(js.Node.process.env);
+    var normalize = 
+      if (Os.IS_WINDOWS) 
+        function (s:String) return s.toUpperCase();
+      else 
+        function (s) return s;
     
-    for (name in add.keys())
-      ret[name] = add[name];
-      
+    var env = js.Node.process.env;
+    var ret = new DynamicAccess();
+
+    for (m in [env, add])
+      for (key in m.keys())
+        ret[normalize(key)] = m[key];
+    
     return ret;
   }  
   

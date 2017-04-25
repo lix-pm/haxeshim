@@ -14,8 +14,6 @@ typedef SeekingOptions = {
 }
 
 class Scope {
- 
-  static public var IS_WINDOWS(default, null):Bool = Sys.systemName() == 'Windows';
   
   static var CONFIG_FILE = '.haxerc';
   /**
@@ -229,7 +227,7 @@ class Scope {
             make(false, cur);
           case '/' | '':
             global();
-          case _.split(':') => [drive, ''] if (IS_WINDOWS && drive.length == 1):
+          case _.split(':') => [drive, ''] if (Os.IS_WINDOWS && drive.length == 1):
             global();
           default:
             dig(cur.directory().removeTrailingSlashes());
@@ -242,7 +240,7 @@ class Scope {
     switch Sys.getEnv('HAXESHIM_ROOT') {
       case null | '':
         Sys.getEnv(
-          if (IS_WINDOWS) 'APPDATA'
+          if (Os.IS_WINDOWS) 'APPDATA'
           else 'HOME'
         ) + '/haxe';//relying on env variables is always rather brave, but let's try this for now
       case v:
