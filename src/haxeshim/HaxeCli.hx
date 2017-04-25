@@ -81,7 +81,19 @@ class HaxeCli {
     return args;
   }
   
-  function dispatch(args:Array<String>) 
+  function dispatch(args:Array<String>) {
+    
+    var cwd = 
+      switch args.indexOf('--cwd') {
+        case -1:
+          null;
+        case v:
+          args[v+1] = js.node.Path.resolve(args[v+1]);
+      }
+
+    function getScope()
+      return gracefully(Scope.seek.bind({ cwd: cwd }));
+
     switch args {
       case _.indexOf('--wait') => wait if (wait >=0 && wait < args.length - 1):
 
@@ -97,7 +109,7 @@ class HaxeCli {
       case _.slice(0, 2) => ['--run', haxeShimExtension] if (haxeShimExtension.indexOf('-') != -1 && haxeShimExtension.toLowerCase() == haxeShimExtension):
         
         var args = args.slice(2);
-        var scope = gracefully(Scope.seek.bind());
+        var scope = getScope();
         
         switch haxeShimExtension {
           case 'install-libs':
@@ -134,8 +146,8 @@ class HaxeCli {
         }
         
       case args:
-        
-        var scope = gracefully(Scope.seek.bind());
+
+        var scope = getScope();
         
         switch [args.indexOf('--connect'), args.indexOf('--haxe-version')] {
           case [ -1, -1]:
@@ -152,7 +164,7 @@ class HaxeCli {
         }
         Sys.exit(gracefully(Exec.sync(scope.haxeInstallation.compiler, scope.cwd, checkClassPaths(gracefully(scope.resolve.bind(args))), scope.haxeInstallation.env()).sure));
     }
-  
+  }
   
 }
 
