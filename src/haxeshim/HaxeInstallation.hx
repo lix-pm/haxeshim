@@ -31,10 +31,14 @@ class HaxeInstallation {
     }
 
     function addNeko(varName:String, sep:String = ':')
-      ret[varName] = [
-        Sys.getEnv(varName),
-        nekoPath
-      ].join(sep);
+      switch Sys.getEnv(varName) {
+        case v if (v.indexOf(nekoPath) == -1):
+          ret[varName] = [
+            Sys.getEnv(varName),
+            nekoPath
+          ].join(sep);
+        default:
+      }
 
     switch Sys.systemName() {
       case 'Windows':
