@@ -33,6 +33,7 @@ class HaxeInstallation {
     function addNeko(varName:String, sep:String = ':')
       ret[varName] =
         switch Sys.getEnv(varName) {
+          case null: nekoPath;
           case withNeko if (withNeko.indexOf(nekoPath) != -1):
             withNeko;
           case v:
