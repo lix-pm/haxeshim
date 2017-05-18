@@ -230,7 +230,7 @@ class CompilerServer {
       else 
         waiting.next(function (w) return w.kill());
   
-  function connect(version:String):Surprise<Socket, Error> {          
+  function connect(version:String):Promise<Socket> {          
     
     if (version != lastVersion || waiting == null) {
       lastVersion = version;
@@ -247,8 +247,21 @@ class CompilerServer {
               proc.on("disconnect", cb.bind(Noise));
             }),
             version: version,
-            socket: function () 
-              return js.node.Net.createConnection(port, '127.0.0.1'),
+            socket: function () return Future.async(function (cb) {
+              var max = 10;
+              function connect(attempt:Int) {
+                var cnx = js.node.Net.createConnection(port, '127.0.0.1');
+                cnx
+                  .on('error', function () 
+                    if (attempt >= max)
+                      cb(Failure(new Error('Failed to connect to 127.0.0.1:$port after $max attempts')))
+                    else
+                      haxe.Timer.delay(connect.bind(attempt+1), 100)
+                  )
+                  .on('connect', function () cb(Success(cnx)));
+              }
+              connect(1);
+            }),
             kill: function () {
               proc.kill();
               return Future.async(function (cb) haxe.Timer.delay(cb.bind(Noise), 500));
@@ -275,6 +288,6 @@ class CompilerServer {
 private typedef Waiting = {
   var died(default, null):Future<Noise>;
   var version(default, null):String;
-  function socket():Socket;
+  function socket():Promise<Socket>;
   function kill():Future<Noise>;
 }

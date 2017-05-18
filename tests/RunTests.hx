@@ -7,10 +7,19 @@ class RunTests {
 
     runner.add(new TestResolution());
 
-    travix.Logger.exit(
-      if (runner.run()) 0
-      else 500
-    );
+    var server = new haxeshim.CompilerServer(Port(6000), haxeshim.Scope.seek(), []);
+    js.node.ChildProcess.exec('haxe --connect 6000 -version', function (error, stdout, stderr) {
+      if (error == null) {
+        travix.Logger.exit(
+          if (runner.run()) 0
+          else 500
+        );        
+      }
+      else {
+        trace(error);
+        Sys.exit(500);
+      }
+    });
   }
   
 }
