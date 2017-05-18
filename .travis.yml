@@ -24,8 +24,8 @@ install:
   - unset HAXE_STD_PATH
   
   - npm install . -g
-  - which haxelib
   - neko -version
+  - haxelib version
   - haxelib install travix
   - haxelib run travix install
   - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs

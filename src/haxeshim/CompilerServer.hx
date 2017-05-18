@@ -252,9 +252,9 @@ class CompilerServer {
               function connect(attempt:Int) {
                 var cnx = js.node.Net.createConnection(port, '127.0.0.1');
                 cnx
-                  .on('error', function () 
+                  .on('error', function (e) 
                     if (attempt >= max)
-                      cb(Failure(new Error('Failed to connect to 127.0.0.1:$port after $max attempts')))
+                      cb(Failure(new Error('Failed to connect to 127.0.0.1:$port after $max attempts because $e')))
                     else
                       haxe.Timer.delay(connect.bind(attempt+1), 100)
                   )

@@ -1,13 +1,19 @@
 package haxeshim;
 
+using StringTools;
+
 class HaxelibCli {
 
   static function main() {
     var installation = Scope.seek().haxeInstallation;
     var env = installation.env();
-    
-    if (Os.IS_WINDOWS)
-      Sys.putEnv('PATH', env['PATH']);
+
+    for (name in env.keys())
+      if (!name.startsWith('HAXE')) 
+        Sys.putEnv(name, env[name]);
+      
+    // if (Os.IS_WINDOWS)
+      // Sys.putEnv('PATH', env['PATH']);
       
     Sys.exit(
       switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), env) {
