@@ -19,7 +19,9 @@ class HaxeInstallation {
     this.haxelib = '$path/haxelib$EXT';
     this.stdLib = '$path/std';
     this.haxelibRepo = haxelibRepo;
-    this.nekoPath = StringTools.replace(nekoPath, '/', '\\');
+    this.nekoPath = 
+      if (Os.IS_WINDOWS) StringTools.replace(nekoPath, '/', '\\');
+      else nekoPath;
   }
   
   public function env() {

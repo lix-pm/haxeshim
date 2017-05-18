@@ -18,7 +18,7 @@ class Exec {
     for (m in [env, add])
       for (key in m.keys())
         ret[normalize(key)] = m[key];
-    trace(ret);
+    
     return ret;
   }  
   
