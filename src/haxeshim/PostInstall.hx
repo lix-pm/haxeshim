@@ -41,13 +41,20 @@ class PostInstall {
     return buf;
   }
 
-  static function exify(dir, source) {    
+  static function exify(dir, source, mayFail) {    
     
     for (name in ['haxe', 'haxelib', 'neko']) {
       var exe = '$dir/$name.exe';
       if (exe.exists() && !'$exe.bak'.exists())
         exe.rename('$exe.bak');
-      exe.saveBytes(makeExe('node "$source/${name}shim.js"'));
+      try {
+        exe.saveBytes(makeExe('node "$source/${name}shim.js"'));
+      }
+      catch (e:Dynamic) 
+        if (!mayFail(name)) {
+          Sys.println('failed to shim $name');
+          Sys.exit(500);
+        }
     }
 
   }
@@ -65,17 +72,26 @@ class PostInstall {
     if (GLOBAL) {
 
       if (WINDOWS) {
-        var sources = js.Node.__dirname.replace('\\', '/');
+        var sources = js.Node.__dirname.replace('\\', '/'),
+            mayFail = 
+              switch Sys.command('haxe', ['--run', 'show-version']) {
+                case 0: function (c) return c == 'haxe';
+                default: function (_) return false; 
+              }
+
+        inline function process(dir)
+          exify(dir, sources, mayFail);
+
         // trace('file: ' + js.Node.__dirname);
         for (p in which('haxe')) 
           switch new Path(p) {
             case { ext: 'cmd', dir: npm }:
               
-              exify(npm, sources);
+              process(npm);
               
             case { ext: 'exe', dir: std } if (Lambda.foreach(['CHANGES.txt', 'CONTRIB.txt', 'LICENSE.txt'], function (file) return '$std/$file'.exists())):
               
-              exify(std, sources);
+              process(std);
 
             default:            
           }
