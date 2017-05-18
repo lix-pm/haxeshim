@@ -9,10 +9,9 @@ class HaxelibCli {
     var env = installation.env();
 
     for (name in env.keys())
-      if (!name.startsWith('HAXE')) {
-        trace([name, env[name]]);
+      if (!name.startsWith('HAXE')) 
         Sys.putEnv(name, env[name]);
-      }
+  
       
     // if (Os.IS_WINDOWS)
       // Sys.putEnv('PATH', env['PATH']);
