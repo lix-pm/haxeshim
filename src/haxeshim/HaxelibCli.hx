@@ -5,7 +5,7 @@ class HaxelibCli {
   static function main() {
     var installation = Scope.seek().haxeInstallation;
     var env = installation.env();
-    trace(env);
+    
     if (Os.IS_WINDOWS)
       Sys.putEnv('PATH', env['PATH']);
       
