@@ -197,7 +197,7 @@ class Resolver {
               case -1: 
                 res;
               case v:
-                absolute(res.substr(0, v)) + '@' + res.substr(v + 1);
+                res.substr(0, v) + '@' + res.substr(v + 1);
             }
           );
           
