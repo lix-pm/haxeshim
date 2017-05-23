@@ -11,10 +11,6 @@ class HaxelibCli {
     for (name in env.keys())
       if (!name.startsWith('HAXE')) 
         Sys.putEnv(name, env[name]);
-  
-      
-    // if (Os.IS_WINDOWS)
-      // Sys.putEnv('PATH', env['PATH']);
       
     Sys.exit(
       switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), env) {
