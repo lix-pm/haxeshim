@@ -1,14 +1,19 @@
 package ;
 
+import haxeshim.*;
+
 class RunTests {
 
   static function main() {
     var runner = new haxe.unit.TestRunner();
 
     runner.add(new TestResolution());
+    runner.add(new TestEnv());
 
-    var server = new haxeshim.CompilerServer(Port(6000), haxeshim.Scope.seek(), []);
+    new CompilerServer(Port(6000), Scope.seek(), []);
+
     js.node.ChildProcess.exec('haxe --connect 6000 -version', function (error, stdout, stderr) {
+      
       if (error == null) {
         travix.Logger.exit(
           if (runner.run()) 0
@@ -24,9 +29,38 @@ class RunTests {
   
 }
 
+class TestEnv extends haxe.unit.TestCase {
+  function test() {
+    var a:Env = {
+      'one': 'a',
+      'two': 'a',
+    }
+    var b:Env = {
+      'two': 'b',
+      'three': 'b',
+    }
+
+    var aIntoB = a.mergeInto(b),
+        bIntoA = b.mergeInto(a);
+
+    assertEquals('a', aIntoB['one']);
+    assertEquals('a', bIntoA['one']);
+    
+    assertEquals('a', aIntoB['two']);
+    assertEquals('b', bIntoA['two']);
+
+    assertEquals('b', aIntoB['three']);
+    assertEquals('b', bIntoA['three']);
+    
+    if (Os.IS_WINDOWS) {
+      assertEquals('a', aIntoB['oNe']);
+    }
+  }
+}
+
 class TestResolution extends haxe.unit.TestCase {
   function testNext() {
-    var r = new haxeshim.Resolver(Sys.getCwd(), null, Haxelib, function (v) throw 'assert');
+    var r = new Resolver(Sys.getCwd(), null, Haxelib, function (v) throw 'assert');
     assertEquals(
       ["--macro", "Sys.println('before')", "--run", "Main1", "--next", "-lib", "tink_core", "--run", "Main2", "-lib", "foo"].join('\n')
       ,r.resolve(['tests/build.hxml'], function (libs) {

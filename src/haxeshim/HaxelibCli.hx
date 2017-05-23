@@ -5,15 +5,11 @@ using StringTools;
 class HaxelibCli {
 
   static function main() {
+    Neko.setEnv();
     var installation = Scope.seek().haxeInstallation;
-    var env = installation.env();
-
-    for (name in env.keys())
-      if (!name.startsWith('HAXE')) 
-        Sys.putEnv(name, env[name]);
       
     Sys.exit(
-      switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), env) {
+      switch Exec.sync(installation.haxelib, Sys.getCwd(), Sys.args(), installation.env()) {
         case Success(c):
           c;
         case Failure(e):

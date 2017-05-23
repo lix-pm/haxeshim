@@ -1,7 +1,7 @@
 package haxeshim;
 
 @:enum abstract LibResolution(String) {
-  var Scoped = null;
+  var Scoped = 'scoped';
   var Mixed = 'mixed';
   var Haxelib = 'haxelib';
 }

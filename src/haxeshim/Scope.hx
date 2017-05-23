@@ -102,7 +102,10 @@ class Scope {
       
     if (config.version == null)
       throw 'No version set in $configFile';
-      
+
+    if (config.resolveLibs == null)
+      @:privateAccess config.resolveLibs = Scoped;
+
     switch config.resolveLibs {
       case Scoped | Mixed | Haxelib:
       case v:
@@ -138,7 +141,7 @@ class Scope {
   }
   
   public function getInstallation(version:String) 
-    return new HaxeInstallation('$versionDir/$version', version, haxelibRepo, '$haxeshimRoot/neko');//TODO: the neko path probably should not be hardcoded
+    return new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
   
   function resolveThroughHaxelib(libs:Array<String>) 
     return 

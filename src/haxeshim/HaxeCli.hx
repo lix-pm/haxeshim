@@ -22,15 +22,11 @@ class HaxeCli {
   var scope:Scope;
         
   public function new(scope) {
-    this.scope = scope;
-
-    var env = scope.haxeInstallation.env();
-    if (Os.IS_WINDOWS)
-      Sys.putEnv('PATH', env['PATH']);
-    
+    this.scope = scope;    
   }
   
   static function main() {
+    Neko.setEnv();
     new HaxeCli(gracefully(Scope.seek.bind())).dispatch(Sys.args()); 
   }
   
