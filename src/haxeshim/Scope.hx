@@ -104,7 +104,7 @@ class Scope {
       throw 'No version set in $configFile';
 
     if (config.resolveLibs == null)
-      @:privateAccess config.resolveLibs = Scoped;
+      @:privateAccess config.resolveLibs = if (isGlobal) Mixed else Scoped;
 
     switch config.resolveLibs {
       case Scoped | Mixed | Haxelib:
