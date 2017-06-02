@@ -1,6 +1,6 @@
 {
   "name": "haxeshim",
-  "version": "0.8.9",
+  "version": "0.9.0",
   "bin": {
     "haxe": "bin/haxeshim.js",
     "haxelib": "bin/haxelibshim.js",
