@@ -4,6 +4,7 @@ import haxe.DynamicAccess;
 using sys.io.File;
 using sys.FileSystem;
 using StringTools;
+using tink.CoreApi;
 using haxe.io.Path;
 using haxe.Json;
 
@@ -140,8 +141,20 @@ class Scope {
     configFile.saveContent(config.stringify('  '));
   }
   
+  function path(v:String)
+    return 
+      if (v.isAbsolute()) Some(v);
+      else if (v.charAt(0) == '.') Some('$cwd/$v');
+      else None;
+
   public function getInstallation(version:String) 
-    return new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
+    return 
+      switch path(version) {
+        case Some(path):
+          new HaxeInstallation(path, version, haxelibRepo);
+        case None:
+          new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
+      }
   
   function resolveThroughHaxelib(libs:Array<String>) 
     return 
