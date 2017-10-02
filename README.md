@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/lix-pm/haxeshim.svg?branch=master)](https://travis-ci.org/lix-pm/haxeshim)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lix-pm/Lobby)
 
 # Haxe Shim - a simple wrapper around Haxe
 
