@@ -144,7 +144,7 @@ class Scope {
   function path(v:String)
     return 
       if (v.isAbsolute()) Some(v);
-      else if (v.charAt(0) == '.') Some('$cwd/$v');
+      else if (v.startsWith('./') || v.startsWith('../')) Some('$cwd/$v');
       else None;
 
   public function getInstallation(version:String) 
