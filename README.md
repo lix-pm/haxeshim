@@ -79,7 +79,7 @@ You can run haxeshim extensions through `haxe --run <extension-name> [...args]`.
 
 Currently, the following extensions are implemented:
   
-- `install-libs`: this will go through all library hxmls in `haxe_libraries` and in case of missing class paths will pick up `@install:` directives and execute them or report an error if none are present
+- `install-libs`: this will go through all library hxmls in `haxe_libraries` and in case of missing class paths will pick up `@install:` and `@post-install` directives and execute them or report an error if none are present. Note that first all `@install` directives are run, and then all `@post-install` directives are run. Beyond that, consider the order strictly undefined.
 - `resolve-args`: will resolve all the following arguments based on haxeshim's rules and prints each resulting argument on a single line.
 - `show-version`: will report the current haxe version like so:
   
