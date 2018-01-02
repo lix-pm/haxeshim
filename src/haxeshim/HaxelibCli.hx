@@ -28,9 +28,11 @@ class HaxelibCli {
       });    
     switch args[0] {
       case 'run-dir':
+        if (args.length < 3)
+          Exec.die(402, 'Not enough arguments. Syntax is `haxelib run-dir <name> <path> <...args>');
         args = args.slice(1).map(scope.interpolate);
-        var path = args.shift();
         var name = args.shift();
+        var path = args.shift();
         Fs.get('$path/haxelib.json')
           .next(
             function (s) 
