@@ -172,30 +172,51 @@ class Scope {
   public function interpolate(value:String)
     return Resolver.interpolate(value, getDefault);
 
+  function parseDirectives(raw:String) {
+    var ret = new Map();
+    for (line in raw.split('\n').map(StringTools.trim))
+      if (line.startsWith('#')) {
+        var content = line.substr(1).ltrim();
+        if (content.startsWith('@'))
+          switch content.indexOf(':') {
+            case -1:
+            case v:
+              var name = content.substr(1, v);
+              (switch ret[name] {
+                case null: ret[name] = [];
+                case v: v;
+              }).push(content.substr(v + 1).ltrim());
+          }
+      }
+    return ret;
+  }
+
+  public function getDirectives(lib:String)
+    return Fs.get(Resolver.libHxml(scopeLibDir, lib))
+      .next(parseDirectives);
+
   public function getLibCommand(args:Array<String>) {
     args = args.map(interpolate);
     var lib = args.shift();    
-    return Fs.get(Resolver.libHxml(scopeLibDir, lib))
-      .next(
-        function (s) {
-          for (line in s.split('\n'))
-            switch line.split('# @run: ').map(StringTools.trim) {
-              case ['', cmd]:
-                return Exec.shell.bind([cmd].concat(
-                  args.map(if (Os.IS_WINDOWS) StringTools.quoteWinArg.bind(_, true) else StringTools.quoteUnixArg)
-                ).join(' '), Sys.getCwd(), haxeInstallation.env());
-              case [_]:
-              default: return new Error('invalid @run directive $line'); 
-            }
-          return new Error('no run directive found for library $lib');
-        }
-      );
+    return 
+      getDirectives(lib)
+        .next(function (d) return switch d['run'] {
+          case null | []: new Error('no @run directive found for library $lib');
+          case [cmd]: 
+            return Exec.shell.bind([cmd].concat(
+              args.map(if (Os.IS_WINDOWS) StringTools.quoteWinArg.bind(_, true) else StringTools.quoteUnixArg)
+            ).join(' '), Sys.getCwd(), haxeInstallation.env());
+          default: new Error('more than one @run directive for library $lib'); 
+        });
   }
       
   public function getInstallationInstructions() {
     
     var missing = [],
-        instructions = [];
+        instructions = {
+          install: [],
+          postInstall: [],
+        }
         
     for (child in scopeLibDir.readDirectory()) {
       var path = '$scopeLibDir/$child';
@@ -210,16 +231,24 @@ class Scope {
               var cp = interpolate(args[pos++]);
               
               if (!cp.exists()) {
-                switch hxml.split('@install:') {
-                  case [v]:
+                var dir = parseDirectives(hxml);
+                switch dir['install'] {
+                  case null | []:
                     missing.push({
                       lib: child,
                       cp: cp,
                     });
-                  case _.slice(1) => a:
-                    for (i in a)
-                      instructions.push(i.split('\n')[0].trim());
+                  case v:
+                    for (i in v) 
+                      instructions.install.push(i);
+                    switch dir['post-install'] {
+                      case null:
+                      case v:
+                        for (i in v)
+                          instructions.postInstall.push(i);
+                    }
                 }
+                pos = max;//at this point either the classpath is missing or all install directives are already added to results
               }
             default:
           }

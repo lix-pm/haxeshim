@@ -52,14 +52,8 @@ class HaxelibCli {
             case Success(cmd):
               exit(cmd());
             case Failure(e):
-              trace(e.message);
               callHaxelib();
           });
-        // args = args.slice(1).map(scope.interpolate);
-        // var lib = args.shift();
-
-       
-          // ).handle(exit);
       default:
         callHaxelib();
     }

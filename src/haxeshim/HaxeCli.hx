@@ -31,15 +31,16 @@ class HaxeCli {
           Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
     }
     
-    for (cmd in i.instructions) {
-      if (!silent)
-        Sys.println(cmd);
-      switch Exec.shell(cmd, Sys.getCwd()) {
-        case Failure(e):
-          code = e.code;
-        default:
+    for (cmds in [i.instructions.install, i.instructions.postInstall])
+      for (cmd in cmds) {
+        if (!silent)
+          Sys.println(cmd);
+        switch Exec.shell(cmd, Sys.getCwd()) {
+          case Failure(e):
+            code = e.code;
+          default:
+        }
       }
-    }
     
     Sys.exit(code);    
   }
