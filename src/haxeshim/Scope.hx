@@ -168,6 +168,9 @@ class Scope {
         case Failure(e):
           e.throwSelf();
       }
+
+  public function interpolate(value:String)
+    return Resolver.interpolate(value, getDefault);
       
   public function getInstallationInstructions() {
     
@@ -184,7 +187,7 @@ class Scope {
         while (pos < max)
           switch args[pos++] {
             case '-cp':
-              var cp = Resolver.interpolate(args[pos++], getDefault);
+              var cp = interpolate(args[pos++]);
               
               if (!cp.exists()) {
                 switch hxml.split('@install:') {

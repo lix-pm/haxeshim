@@ -5,7 +5,20 @@ import js.node.Buffer;
 using tink.CoreApi;
 
 class Exec {
-
+  
+  static public function die(code, reason):Dynamic {
+    Sys.stderr().writeString('$reason\n');
+    Sys.exit(code);    
+    return throw 'unreachable';
+  }
+  static public function gracefully<T>(f:Void->T) 
+    return 
+      try f()
+      catch (e:Error) 
+        die(e.code, e.message)
+      catch (e:Dynamic) 
+        die(500, Std.string(e));
+        
   static public function mergeEnv(env:Env)
     return env.mergeInto(js.Node.process.env);
   

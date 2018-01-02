@@ -16,8 +16,8 @@ class Resolver {
   var defaults:String->Null<String>;
   var errors:Array<Error>;
   
-  public function new(cwd, libDir, mode, defaults) {
-    this.cwd = cwd;
+  public function new(cwd:String, libDir, mode, defaults) {
+    this.cwd = cwd.normalize().addTrailingSlash();
     this.libDir = libDir;
     this.mode = mode;
     this.defaults = defaults;
@@ -79,7 +79,7 @@ class Resolver {
 
     var start = 0,
         pos = 0, 
-        final = []; 
+        result = []; 
     
     function libs(args:Array<String>) {
       var ret = [],
@@ -107,7 +107,8 @@ class Resolver {
     }
     
     function flush() {
-      final = final.concat(libs(ret.slice(start, pos)));
+      result = result.concat(libs(ret.slice(start, pos)));
+      resolved = new Map();
       start = pos;
     }
         
@@ -120,7 +121,16 @@ class Resolver {
       
     flush();
     
-    return final;
+    return ['--cwd', cwd].concat(result.map(relative));
+  }
+
+  function relative(path:String) {
+    return 
+      if (path.startsWith(cwd)) { 
+        path.substr(cwd.length).normalize();
+      }
+      else 
+        path;
   }
   
   static public function libHxml(libDir:String, libName:String)
@@ -139,9 +149,8 @@ class Resolver {
             Success(Noise);
         }
     
-  function processHxml(file:String) {
+  function processHxml(file:String) 
     process(parseLines(file.getContent()));
-  }
   
   static public function parseLines(source:String, ?normalize:String->Array<String>) {
     if (normalize == null)
@@ -174,23 +183,35 @@ class Resolver {
   }
   
   function process(args:Array<String>) {
+
     var i = 0,
         max = args.length,
-        interpolate = interpolate.bind(_, defaults);
-          
+        args = [for (a in args) interpolate(a, defaults)];
+
+    function next()
+      return
+        if (i >= max) {
+          errors.push(new Error('missing argument for ${args[i - 1]}'));
+          '<MISSING>';
+        }
+        else args[i++];
     while (i < max)
       switch args[i++].trim() {
         case '':
         case '-cp':
           
           ret.push('-cp');
-          ret.push(absolute(interpolate(args[i++])));
-          
+          ret.push(absolute(next()));
+        
+        case '--cwd':
+
+          cwd = absolute(next()).addTrailingSlash();
+
         case '-resource':
           
           ret.push('-resource');
           
-          var res = args[i++];
+          var res = next();
           
           ret.push(
             switch res.lastIndexOf('@') {
@@ -203,7 +224,7 @@ class Resolver {
           
         case '-lib':
           
-          var lib = args[i++];
+          var lib = next();
           function add() {
             ret.push('-lib');
             ret.push(lib);
@@ -226,7 +247,7 @@ class Resolver {
                 add();
           }
         case '-scoped-hxml':
-          var target = absolute(interpolate(args[i++]));
+          var target = absolute(next());
           var parts = Scope.seek({ cwd: target.directory() }).resolve([target]);
           
           for (arg in parts)
@@ -243,7 +264,7 @@ class Resolver {
   
   function absolute(path:String)
     return 
-      if (path.isAbsolute()) path;
+      if (path.isAbsolute()) path.normalize();
       else Path.join([cwd, path]);
   
   static function removeComments(line:String)
