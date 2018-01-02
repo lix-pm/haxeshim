@@ -171,6 +171,26 @@ class Scope {
 
   public function interpolate(value:String)
     return Resolver.interpolate(value, getDefault);
+
+  public function getLibCommand(args:Array<String>) {
+    args = args.map(interpolate);
+    var lib = args.shift();    
+    return Fs.get(Resolver.libHxml(scopeLibDir, lib))
+      .next(
+        function (s) {
+          for (line in s.split('\n'))
+            switch line.split('# @run: ').map(StringTools.trim) {
+              case ['', cmd]:
+                return Exec.shell.bind([cmd].concat(
+                  args.map(if (Os.IS_WINDOWS) StringTools.quoteWinArg.bind(_, true) else StringTools.quoteUnixArg)
+                ).join(' '), Sys.getCwd(), haxeInstallation.env());
+              case [_]:
+              default: return new Error('invalid @run directive $line'); 
+            }
+          return new Error('no run directive found for library $lib');
+        }
+      );
+  }
       
   public function getInstallationInstructions() {
     
@@ -235,24 +255,11 @@ class Scope {
     }
     
     var make = Scope.new.bind(haxeshimRoot, _, _, cwd);
-      
-    function global()
-      return make(true, haxeshimRoot);
-      
-    function dig(cur:String) 
-      return
-        switch cur {
-          case '$_/$CONFIG_FILE'.exists() => true:
-            make(false, cur);
-          case '/' | '':
-            global();
-          case _.split(':') => [drive, ''] if (Os.IS_WINDOWS && drive.length == 1):
-            global();
-          default:
-            dig(cur.directory().removeTrailingSlashes());
-        }
         
-    return dig(startLookingIn.absolutePath().removeTrailingSlashes());
+    return switch Fs.findNearest(CONFIG_FILE, startLookingIn.absolutePath()) {
+      case Some(v): make(false, v.directory());
+      case None: make(true, haxeshimRoot);
+    }
   }
   
   static public var DEFAULT_ROOT(default, null):String =  
