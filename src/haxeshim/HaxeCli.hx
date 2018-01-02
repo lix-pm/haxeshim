@@ -67,17 +67,9 @@ class HaxeCli {
   }
   
   function dispatch(args:Array<String>) {
-    
-    var cwd = 
-      switch args.indexOf('--cwd') {
-        case -1:
-          null;
-        case v:
-          args[v+1] = js.node.Path.resolve(args[v+1]);
-      }
 
     function getScope()
-      return gracefully(Scope.seek.bind({ cwd: cwd }));
+      return gracefully(Scope.seek.bind({ cwd: null }));
 
     switch args {
       case _.indexOf('--wait') => wait if (wait >=0 && wait < args.length - 1):

@@ -181,7 +181,7 @@ class Scope {
           switch content.indexOf(':') {
             case -1:
             case v:
-              var name = content.substr(1, v);
+              var name = content.substring(1, v);
               (switch ret[name] {
                 case null: ret[name] = [];
                 case v: v;
@@ -196,7 +196,7 @@ class Scope {
       .next(parseDirectives);
 
   public function getLibCommand(args:Array<String>) {
-    args = args.map(interpolate);
+    args = args.copy();
     var lib = args.shift();    
     return 
       getDirectives(lib)

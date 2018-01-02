@@ -28,7 +28,7 @@ class HaxelibCli {
       });    
     switch args[0] {
       case 'run-dir':
-        args = args.slice(1);//.map(scope.interpolate);
+        args = args.slice(1).map(scope.interpolate);
         var path = args.shift();
         var name = args.shift();
         Fs.get('$path/haxelib.json')
