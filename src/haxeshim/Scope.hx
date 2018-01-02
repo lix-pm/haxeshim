@@ -196,14 +196,14 @@ class Scope {
       .next(parseDirectives);
 
   public function getLibCommand(args:Array<String>) {
-    args = args.copy();
+    args = args.map(interpolate);
     var lib = args.shift();    
     return 
       getDirectives(lib)
         .next(function (d) return switch d['run'] {
           case null | []: new Error('no @run directive found for library $lib');
           case [cmd]: 
-            return Exec.shell.bind([cmd].concat(
+            return Exec.shell.bind([interpolate(cmd)].concat(
               args.map(if (Os.IS_WINDOWS) StringTools.quoteWinArg.bind(_, true) else StringTools.quoteUnixArg)
             ).join(' '), Sys.getCwd(), haxeInstallation.env());
           default: new Error('more than one @run directive for library $lib'); 
@@ -245,7 +245,7 @@ class Scope {
                       case null:
                       case v:
                         for (i in v)
-                          instructions.postInstall.push(i);
+                          instructions.postInstall.push(interpolate(i));
                     }
                 }
                 pos = max;//at this point either the classpath is missing or all install directives are already added to results
