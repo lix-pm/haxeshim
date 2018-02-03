@@ -139,7 +139,13 @@ class HaxeCli {
             args.push(scope.haxeInstallation.version);
           default:
         }
-        Sys.exit(gracefully(Exec.sync(scope.haxeInstallation.compiler, scope.cwd, checkClassPaths(gracefully(scope.resolve.bind(args))), scope.haxeInstallation.env()).sure));
+        
+        switch scope.haxeInstallation.compiler {
+          case haxe if (haxe.exists()): 
+            Sys.exit(gracefully(Exec.sync(haxe, scope.cwd, checkClassPaths(gracefully(scope.resolve.bind(args))), scope.haxeInstallation.env()).sure));
+          case path:
+            die(404, 'haxe compiler not found at the expected location "$path"');
+        }
     }
   }
   
