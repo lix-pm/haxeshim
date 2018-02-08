@@ -13,7 +13,7 @@ using StringTools;
 class PostInstall { 
   
   static var placeholder = Bytes.ofString("abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789");
-  static var exifier = Resource.getBytes('exify');
+  static var exifier = haxe.crypto.Base64.decode(haxeshim.exify.Embed.binary());
   static var offset = {
     var ret = -1;
     for (i in 0...exifier.length - placeholder.length)
