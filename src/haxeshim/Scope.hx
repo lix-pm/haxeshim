@@ -121,6 +121,7 @@ class Scope {
   public function getDefault(variable:String)
     return switch variable {
       case 'HAXESHIM_LIBCACHE': libCache;
+      case 'SCOPE_DIR': scopeDir;
       default: null;
     }
   
