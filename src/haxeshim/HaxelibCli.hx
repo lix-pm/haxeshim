@@ -1,7 +1,5 @@
 package haxeshim;
 
-using StringTools;
-using sys.FileSystem;
 using tink.CoreApi;
 
 class HaxelibCli {
@@ -47,7 +45,10 @@ class HaxelibCli {
               case v: 
                 new Error('mainClass support not implemented yet');
             }
-          ).handle(exit);
+          ).handle(function (o) switch o {//this is a little awkward
+            case Success(code): Sys.exit(code);
+            case Failure(e): Exec.die(e.code, e.message);
+          });
       case 'run':
         scope.getLibCommand(args.slice(1))
           .handle(function (o) switch o {

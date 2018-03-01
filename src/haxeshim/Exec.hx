@@ -1,6 +1,5 @@
 package haxeshim;
 
-import haxe.DynamicAccess;
 import js.node.Buffer;
 using tink.CoreApi;
 
