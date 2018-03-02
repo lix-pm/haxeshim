@@ -2,11 +2,14 @@ package haxeshim;
 
 class Neko {
   static public var PATH(default, null):String = Os.slashes(Scope.DEFAULT_ROOT + '/neko');
-  
+  static var isset = false;  
   static public function setEnv() 
-    if (Os.IS_WINDOWS) {
-      for (k in ENV.keys())
-        Sys.putEnv(k, ENV[k]);
+    if (isset) {
+      if (Os.IS_WINDOWS) {
+        for (k in ENV.keys())
+          Sys.putEnv(k, ENV[k]);
+      }
+      isset = false;
     }
 
   static public var ENV(default, null):Env = {

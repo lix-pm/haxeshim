@@ -1,5 +1,4 @@
 package haxeshim;
-import haxe.DynamicAccess;
 
 using sys.io.File;
 using sys.FileSystem;
@@ -210,7 +209,7 @@ class Scope {
           default: new Error('more than one @run directive for library $lib'); 
         });
   }
-      
+  
   public function getInstallationInstructions() {
     
     var missing = [],
