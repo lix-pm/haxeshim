@@ -52,7 +52,7 @@ abstract Args(Array<String>) from Array<String> to Array<String> {
           var start = v + 2;
           var end = switch s.indexOf('}', start) {
             case -1:
-              errors.push('unclosed interpolation in $s');
+              errors.push('unclosed interpolation in "$s"');
               ret.addSub(s, pos);
               return result();
               -1;//unreachable
@@ -65,7 +65,7 @@ abstract Args(Array<String>) from Array<String> to Array<String> {
           ret.add(
             switch resolve(name) {
               case None:
-                errors.push('Unresolved variable $name');
+                errors.push('unresolved variable `$name`');
                 name;
               case Some(v):
                 v;
