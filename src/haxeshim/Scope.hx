@@ -81,7 +81,6 @@ class Scope {
     this.versionDir = '$haxeshimRoot/versions';
     this.haxelibRepo = '$haxeshimRoot/haxelib';
     this.libCache = '$haxeshimRoot/haxe_libraries';
-    reload();
   }
   
   public function reload() {
@@ -93,13 +92,16 @@ class Scope {
             'Global config file $configFile does not exist or cannot be opened';
           else
             'Unable to open file $configFile because $e';
-    this.config =
+    setConfig(
       try src.parse()
       catch (e:Dynamic) {
         Sys.stderr().writeString('Invalid JSON in file $configFile:\n\n$src\n\n');
         throw e;
       }
-      
+    );
+  }
+
+  function setConfig(config:Config) {
     if (config.version == null)
       throw 'No version set in $configFile';
 
@@ -111,10 +113,10 @@ class Scope {
       case v:
         throw 'invalid value $v for `resolveLibs` in $configFile';
     }
-    
+
+    this.config = config;
     this.haxeInstallation = getInstallation(config.version);
     this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, getDefault);
-    
   }
 
   public function getDefault(variable:String)
@@ -134,12 +136,18 @@ class Scope {
     return '$at/$CONFIG_FILE'.exists();
   
   public function reconfigure(changed:Config) {
-    
-    for (f in Reflect.fields(changed))
-      Reflect.setField(config, f, Reflect.field(changed, f));
-    
+    setConfig(changed);    
     configFile.saveContent(config.stringify('  '));
   }
+
+  public function withResolution(r:LibResolution) 
+    return 
+      if (config.resolveLibs == r) this;
+      else {
+        var ret = new Scope(haxeshimRoot, isGlobal, scopeDir, cwd);
+        ret.setConfig({ version: config.version, resolveLibs: r });
+        ret;
+      }
   
   function path(v:String)
     return 
@@ -285,10 +293,12 @@ class Scope {
     
     var make = Scope.new.bind(haxeshimRoot, _, _, cwd);
         
-    return switch Fs.findNearest(CONFIG_FILE, startLookingIn.absolutePath()) {
+    var ret = switch Fs.findNearest(CONFIG_FILE, startLookingIn.absolutePath()) {
       case Some(v): make(false, v.directory());
       case None: make(true, haxeshimRoot);
     }
+    ret.reload();
+    return ret;
   }
   
   static public var DEFAULT_ROOT(default, null):String =  
