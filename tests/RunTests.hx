@@ -68,15 +68,12 @@ class TestHaxeArgs extends Base {
 
 class TestArgs extends Base {
   function testPlus() {
-    function assert(expected:Args, found:Args, ?pos:haxe.PosInfos) {
-      assertEquals(haxe.Json.stringify(expected), haxe.Json.stringify(found), pos);
-    }
     var args:Args = ['foo', 'bar'];
-    assert(['1', 'foo', 'bar'], '1' + args);
-    assert(['foo', 'bar', '1'], args + '1');
-    assert(['1', '2', 'foo', 'bar'], ['1', '2'] + args);
-    assert(['foo', 'bar', '1', '2'], args + ['1', '2']);
-    assert(['foo', 'bar', 'foo', 'bar'], args + args);
+    structEq(['1', 'foo', 'bar'], '1' + args);
+    structEq(['foo', 'bar', '1'], args + '1');
+    structEq(['1', '2', 'foo', 'bar'], ['1', '2'] + args);
+    structEq(['foo', 'bar', '1', '2'], args + ['1', '2']);
+    structEq(['foo', 'bar', 'foo', 'bar'], args + args);
   }
 
   function testInterpolation() {
@@ -95,7 +92,7 @@ class TestArgs extends Base {
       var found = Args.interpolateString(raw, resolve);
       assertEquals(expected, found.result, pos);
       if (errors == null) errors = [];
-      assertEquals(haxe.Json.stringify(errors), haxe.Json.stringify(found.errors), pos);
+      structEq(errors, found.errors, pos);
     }
 
     assert('foo', 'foo');
