@@ -12,6 +12,7 @@ class RunTests {
     runner.add(new TestArgs());
     runner.add(new TestResolution());
     runner.add(new TestEnv());
+    runner.add(new TestHaxeArgs());
 
     new CompilerServer(Port(6000), Scope.seek(), []);
 
@@ -32,7 +33,40 @@ class RunTests {
   
 }
 
-class TestArgs extends haxe.unit.TestCase {
+class Base extends haxe.unit.TestCase {
+  function structEq<T>(a:T, b:T, ?pos:haxe.PosInfos) {
+    assertEquals(haxe.Json.stringify(a), haxe.Json.stringify(b), pos);
+  }
+}
+
+class TestHaxeArgs extends Base {
+  function testSplit() {
+    structEq(
+      [['--macro', 'Sys.println(1000)', '--macro', 'Sys.println(0)'], ['--macro', 'Sys.println(1000)', '--macro', 'Sys.println(1)'], ['--macro', 'Sys.println(1001)','--macro', 'Sys.println(2)'], ['--macro', 'Sys.println(1001)', '--macro', 'Sys.println(3)']],
+      HaxeArgs.splitBuilds([
+        '--macro', 'Sys.println(1000)', '--each',
+        '--macro', 'Sys.println(0)', '--next',
+        '--macro', 'Sys.println(1)', '--next',
+        '--macro', 'Sys.println(1001)', '--each',
+        '--macro', 'Sys.println(2)', '--next',
+        '--macro', 'Sys.println(3)',
+      ])
+    );
+    structEq(
+      [['--macro', 'Sys.println(1000)', '--macro', 'Sys.println(0)'], ['--macro', 'Sys.println(1000)', '--macro', 'Sys.println(1)'], ['--macro', 'Sys.println(1001)','--macro', 'Sys.println(2)'], ['--macro', 'Sys.println(1001)', '--macro', 'Sys.println(3)'], ['--macro', 'Sys.println(1001)']],
+      HaxeArgs.splitBuilds([
+        '--macro', 'Sys.println(1000)', '--each',
+        '--macro', 'Sys.println(0)', '--next',
+        '--macro', 'Sys.println(1)', '--next',
+        '--macro', 'Sys.println(1001)', '--each',
+        '--macro', 'Sys.println(2)', '--next',
+        '--macro', 'Sys.println(3)', '--next',
+      ])
+    );    
+  }
+}
+
+class TestArgs extends Base {
   function testPlus() {
     function assert(expected:Args, found:Args, ?pos:haxe.PosInfos) {
       assertEquals(haxe.Json.stringify(expected), haxe.Json.stringify(found), pos);
@@ -73,7 +107,7 @@ class TestArgs extends haxe.unit.TestCase {
   }
 }
 
-class TestEnv extends haxe.unit.TestCase {
+class TestEnv extends Base {
   function test() {
     var a:Env = {
       'one': 'a',
@@ -102,7 +136,7 @@ class TestEnv extends haxe.unit.TestCase {
   }
 }
 
-class TestResolution extends haxe.unit.TestCase {
+class TestResolution extends Base {
   function testNext() {
     var r = new Resolver(Sys.getCwd(), null, Haxelib, function (v) throw 'assert');
     assertEquals(
