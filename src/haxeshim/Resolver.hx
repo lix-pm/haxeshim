@@ -6,25 +6,6 @@ using sys.FileSystem;
 using StringTools;
 using tink.CoreApi;
 
-@:forward
-abstract Args(Array<String>) from Array<String> to Array<String> {
-
-  @:op(a + b) static function raddString(a:Args, b:String):Args
-    return a + [b];
-
-  @:op(a + b) static function laddString(a:String, b:Args):Args
-    return [a] + b;
-
-  @:op(a + b) static function raddArray(a:Args, b:Array<String>):Args
-    return a.concat(b);
-
-  @:op(a + b) static function laddArray(a:Array<String>, b:Args):Args
-    return a.concat(b);
-
-  @:op(a + b) static function add(a:Args, b:Args):Args
-    return laddArray(a, b);
-}
-
 class Resolver {
   
   var cwd:String;
@@ -291,6 +272,5 @@ class Resolver {
       switch line.indexOf('#') {
         case -1: line;
         case v: line.substr(0, v);
-      }
-  
+      }    
 }

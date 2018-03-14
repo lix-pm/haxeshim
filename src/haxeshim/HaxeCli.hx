@@ -1,6 +1,7 @@
 package haxeshim;
 
 import haxeshim.Exec.*;
+import haxeshim.HaxeArgs;
 using StringTools;
 using sys.FileSystem;
 using tink.CoreApi;
@@ -43,9 +44,8 @@ class HaxeCli {
       }
     
     Sys.exit(code);    
-  }
-  
-  
+  }  
+
   static public function checkClassPaths(args:Array<String>) {
     var i = 0;
     var invalid = [];
