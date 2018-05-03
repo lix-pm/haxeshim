@@ -121,7 +121,7 @@ class Scope {
 
   public function getDefault(variable:String)
     return switch variable {
-      case 'HAXESHIM_LIBCACHE': libCache;
+      case 'HAXESHIM_LIBCACHE' | LIBCACHE: libCache;
       case 'SCOPE_DIR': scopeDir;
       default: null;
     }
@@ -300,16 +300,23 @@ class Scope {
     ret.reload();
     return ret;
   }
+
+  static function env(s:String)
+    return switch Sys.getEnv(s) {
+      case null | '': None;
+      case v: Some(v);
+    }
+
+  static inline var LIBCACHE = 'HAXE_LIBCACHE';
   
   static public var DEFAULT_ROOT(default, null):String =  
-    switch Sys.getEnv('HAXESHIM_ROOT') {
-      case null | '':
+    env('HAXE_ROOT').or(
+      env('HAXESHIM_ROOT').or(
         Sys.getEnv(
           if (Os.IS_WINDOWS) 'APPDATA'
           else 'HOME'
-        ) + '/haxe';//relying on env variables is always rather brave, but let's try this for now
-      case v:
-        v;
-    };
+        ) + '/haxe'//relying on env variables is always rather brave, but let's try this for now
+      )
+    );
   
 }
