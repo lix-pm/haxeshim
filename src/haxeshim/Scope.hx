@@ -307,7 +307,7 @@ class Scope {
       case v: Some(v);
     }
 
-  static inline var LIBCACHE = 'HAXE_LIBCACHE';
+  static public inline var LIBCACHE = 'HAXE_LIBCACHE';
   
   static public var DEFAULT_ROOT(default, null):String =  
     env('HAXE_ROOT').or(
