@@ -240,7 +240,7 @@ class Scope {
               
               if (!cp.exists()) {
                 var dir = parseDirectives(hxml);
-                switch dir['install'] {
+                switch dir[INSTALL] {
                   case null | []:
                     missing.push({
                       lib: child,
@@ -249,7 +249,7 @@ class Scope {
                   case v:
                     for (i in v) 
                       instructions.install.push(i);
-                    switch dir['post-install'] {
+                    switch dir[POST_INSTALL] {
                       case null:
                       case v:
                         for (i in v)
@@ -268,6 +268,9 @@ class Scope {
       instructions: instructions,
     }
   }
+
+  static public inline var INSTALL = 'install';
+  static public inline var POST_INSTALL = 'post-install';
   
   public function resolve(args:Array<String>):Array<String>
     return resolver.resolve(args, resolveThroughHaxelib);
