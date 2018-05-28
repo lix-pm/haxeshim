@@ -51,6 +51,15 @@ class CompilerServer {
     }
   }
   
+  function handleIntSignals() {
+    //See http://stackoverflow.com/a/31562361/111466
+    
+    function cleanExit() process.exit();
+
+    process.on('SIGINT', cleanExit); // catch ctrl-c
+    process.on('SIGTERM', cleanExit); // catch kill
+  }
+  
   function stdio() {
     
     js.node.Fs.watch(scope.configFile, { persistent: false }, function (_, _) {
@@ -64,13 +73,7 @@ class CompilerServer {
     }
 
     process.on('exit', quit);
-
-    //See http://stackoverflow.com/a/31562361/111466
-    
-      function cleanExit() process.exit();
-
-      process.on('SIGINT', cleanExit); // catch ctrl-c
-      process.on('SIGTERM', cleanExit); // catch kill
+    handleIntSignals();
 
     process.stdin.on('end', quit);
     process.stdin.on('close', quit);
@@ -177,6 +180,18 @@ class CompilerServer {
   }
   
   function waitOnPort(port:Int) {
+    function quit() {
+        if (waiting != null) {
+            waiting.handle(function (o) switch o {
+                case Success(w): w.kill();
+                case _:
+            });
+        }
+    }
+
+    process.on('exit', quit);
+    handleIntSignals();
+    
     var server = js.node.Net.createServer(function (cnx:Socket) {
       var buf = [];
         
