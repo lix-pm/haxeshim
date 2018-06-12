@@ -24,7 +24,7 @@ class Resolver {
   }
   
   static public function interpolate(s:String, defaults:String->Null<String>) {
-    if (s.indexOf("${") == -1)
+    if (s.indexOf("${") == -1 || s.charAt(0) == '{')
       return s;
       
     var ret = new StringBuf(),
