@@ -26,6 +26,26 @@ class HaxelibCli {
     this.scope = scope;
     this.installation = scope.haxeInstallation;
   }
+  
+  public function path(libs:Array<String>) {
+    var args = [];
+    for(lib in libs) {
+      args.push('-lib');
+      args.push(lib.split(':')[0]);
+    }
+    var resolved = Exec.gracefully(scope.resolve.bind(args));
+    var out = [];
+    var i = 0;
+    while(i < resolved.length) {
+      var v = resolved[i];
+      if(v == '--cwd') i++; // skip
+      else if(v == '-cp') out.push(resolved[++i]);
+      else if(v.charCodeAt(0) == '-'.code) out.push('$v ${resolved[++i]}');
+      i++;
+    }
+    Sys.println(out.join('\n'));
+    Sys.exit(0);
+  }
 
   public function run(args:Array<String>) 
     scope.getLibCommand(args)
@@ -65,6 +85,8 @@ class HaxelibCli {
         runDir(name, path, args);
       case 'run':
         run(args.slice(1));
+      case 'path':
+        path(args.slice(1));
       default:
         callHaxelib(args);
     }
