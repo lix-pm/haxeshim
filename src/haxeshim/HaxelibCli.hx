@@ -92,7 +92,10 @@ class HaxelibCli {
     }
   }
 
-  static function main() 
-    new HaxelibCli(Scope.seek()).dispatch(Sys.args());
+  static function main() {
+    new HaxelibCli(Scope.seek({
+      cwd: Sys.getEnv('SCOPE_PATH')
+    })).dispatch(Sys.args());
+  }
   
 }
