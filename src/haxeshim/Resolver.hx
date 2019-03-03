@@ -186,7 +186,13 @@ class Resolver {
 
     var i = 0,
         max = args.length,
-        args = [for (a in args) interpolate(a, defaults)];
+        args = args.copy();
+
+    for (a in 0 ... args.length) {
+      // Work around completion server failing on string interpolation (lix-pm/lix.client#44)
+      if (args[a] == '--display') break;
+      args[a] = interpolate(args[a], defaults);
+    }
 
     function next()
       return
