@@ -1,6 +1,7 @@
 package haxeshim;
 
 using tink.CoreApi;
+using haxe.io.Path;
 
 class HaxelibCli {
   static function exit<T>(o:Outcome<T, Error>)
@@ -39,7 +40,7 @@ class HaxelibCli {
     while(i < resolved.length) {
       var v = resolved[i];
       if(v == '--cwd') i++; // skip
-      else if(v == '-cp') out.push(resolved[++i]);
+      else if(v == '-cp') out.push(resolved[++i].addTrailingSlash());
       else if(v.charCodeAt(0) == '-'.code) out.push('$v ${resolved[++i]}');
       i++;
     }
@@ -67,7 +68,7 @@ class HaxelibCli {
       .next(
         function (mainClass) return switch mainClass {
           case null: 
-            Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd()]), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
+            Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().addTrailingSlash()]), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
           case v: 
             new Error('mainClass support not implemented yet');
         }
