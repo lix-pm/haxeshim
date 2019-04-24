@@ -225,43 +225,44 @@ class Scope {
           install: [],
           postInstall: [],
         }
-        
-    for (child in scopeLibDir.readDirectory()) {
-      var path = '$scopeLibDir/$child';
-      if (!path.isDirectory() && path.endsWith('.hxml')) {
-        var hxml = path.getContent();
-        var args = Resolver.parseLines(hxml);
-        var pos = 0,
-            max = args.length;
-        while (pos < max)
-          switch args[pos++] {
-            case '-cp':
-              var cp = interpolate(args[pos++]);
-              
-              if (!cp.exists()) {
-                var dir = parseDirectives(hxml);
-                switch dir[INSTALL] {
-                  case null | []:
-                    missing.push({
-                      lib: child,
-                      cp: cp,
-                    });
-                  case v:
-                    for (i in v) 
-                      instructions.install.push(i);
-                    switch dir[POST_INSTALL] {
-                      case null:
-                      case v:
-                        for (i in v)
-                          instructions.postInstall.push(interpolate(i));
-                    }
+    
+    if(scopeLibDir.exists())
+      for (child in scopeLibDir.readDirectory()) {
+        var path = '$scopeLibDir/$child';
+        if (!path.isDirectory() && path.endsWith('.hxml')) {
+          var hxml = path.getContent();
+          var args = Resolver.parseLines(hxml);
+          var pos = 0,
+              max = args.length;
+          while (pos < max)
+            switch args[pos++] {
+              case '-cp':
+                var cp = interpolate(args[pos++]);
+                
+                if (!cp.exists()) {
+                  var dir = parseDirectives(hxml);
+                  switch dir[INSTALL] {
+                    case null | []:
+                      missing.push({
+                        lib: child,
+                        cp: cp,
+                      });
+                    case v:
+                      for (i in v) 
+                        instructions.install.push(i);
+                      switch dir[POST_INSTALL] {
+                        case null:
+                        case v:
+                          for (i in v)
+                            instructions.postInstall.push(interpolate(i));
+                      }
+                  }
+                  pos = max;//at this point either the classpath is missing or all install directives are already added to results
                 }
-                pos = max;//at this point either the classpath is missing or all install directives are already added to results
-              }
-            default:
-          }
+              default:
+            }
+        }
       }
-    }
     
     return {
       missing: missing,
