@@ -106,6 +106,7 @@ class CompilerServer {
       if (child == null || ctx.version != lastVersion) {
         if (child != null) {
           child.kill();
+          child.stdout.unpipe(process.stdout);
           child.stderr.unpipe(process.stderr);
         }
         
@@ -123,6 +124,7 @@ class CompilerServer {
           if (child == old) child = null;
         });
         
+        child.stdout.pipe(process.stdout);
         child.stderr.pipe(process.stderr);
       }
       
