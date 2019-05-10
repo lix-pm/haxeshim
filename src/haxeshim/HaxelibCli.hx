@@ -68,7 +68,7 @@ class HaxelibCli {
       .next(
         function (mainClass) return switch mainClass {
           case null: 
-            Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().addTrailingSlash()]), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
+            Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
           case v: 
             new Error('mainClass support not implemented yet');
         }
