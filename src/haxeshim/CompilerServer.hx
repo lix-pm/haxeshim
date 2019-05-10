@@ -78,10 +78,10 @@ class CompilerServer {
     process.stdin.on('end', quit);
     process.stdin.on('close', quit);
     
-    var state = AwaitingHeader(new Buffer(0));
+    var state = AwaitingHeader(Buffer.alloc(0));
     
     function frame(payload:Buffer) {
-      var ret = new Buffer(4 + payload.length);
+      var ret = Buffer.alloc(4 + payload.length);
       ret.writeInt32LE(payload.length, 0);
       payload.copy(ret, 4);
       return ret;
@@ -89,7 +89,7 @@ class CompilerServer {
     
     function processData(data:Buffer) {
       
-      var postfix = new Buffer(0);
+      var postfix = Buffer.alloc(0);
       
       var ctx = 
         parseArgs(
@@ -128,7 +128,7 @@ class CompilerServer {
         child.stderr.pipe(process.stderr);
       }
       
-      var first = new Buffer(HaxeCli.checkClassPaths(scope.resolve(ctx.args)).join('\n'));
+      var first = Buffer.alloc(HaxeCli.checkClassPaths(scope.resolve(ctx.args)).join('\n'));
       child.stdin.write(frame(Buffer.concat([first, postfix])));
     }
     
