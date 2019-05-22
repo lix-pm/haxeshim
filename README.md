@@ -83,7 +83,7 @@ Currently, the following extensions are implemented:
 - `resolve-args`: will resolve all the following arguments based on haxeshim's rules and prints each resulting argument on a single line.
 - `show-version`: will report the current haxe version like so:
   
-  ```
+  ```hxml
   -D haxe-ver=<theVersion>
   -cp <pathToStdLib>
   ```
@@ -96,7 +96,7 @@ All arguments are interpolated, using environment variables. The interpolation s
 
 With standard haxe, `--cwd` will simply switch the current working directory. Consider the following arguments:
 
-```
+```hxml
 --cwd /path/to/foo
 -cp src1
 --cwd /path/to/bar
@@ -109,7 +109,7 @@ In standard haxe, all relative class paths are looked up within the final cwd, i
 
 Haxeshim makes all class paths absolute during resolution, then uses the final cwd as basis and makes all class paths relative to that one if possible. The above arguments are thus interpreted as follows:
 
-```
+```hxml
 --cwd /path/to/baz
 -cp /path/to/foo/src1
 -cp /path/to/bar/src2
