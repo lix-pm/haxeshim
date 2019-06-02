@@ -135,10 +135,13 @@ class Scope {
   static public function exists(at:String)
     return '$at/$CONFIG_FILE'.exists();
   
-  public function reconfigure(changed:Config) {
-    setConfig(changed);    
-    configFile.saveContent(config.stringify('  '));
-  }
+  public function reconfigure(changed:Config)     
+    return 
+      Fs.save(configFile, config.stringify('  '))
+        .next(function (n) {
+          setConfig(changed);
+          return n;
+        });
 
   public function withResolution(r:LibResolution) 
     return 
