@@ -79,7 +79,7 @@ class HaxeCli {
             case 'stdio': Stdio;
             case Std.parseInt(_) => port: Port(port);
           },
-          Scope.seek(),
+          getScope(),
           args
         );
         
