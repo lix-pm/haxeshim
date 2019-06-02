@@ -1,6 +1,7 @@
 package haxeshim;
 
 import haxe.ds.Option;
+import haxe.io.Bytes;
 
 using sys.io.File;
 using haxe.io.Path;
@@ -8,12 +9,23 @@ using sys.FileSystem;
 using StringTools;
 using tink.CoreApi;
 
+private abstract Payload(Bytes) from Bytes to Bytes {
+  @:from static function ofString(s:String):Payload
+    return Bytes.ofString(s);
+}
+
 class Fs { 
-  static public function get(path:String, ?pos):Promise<String>
+  static function attempt<T>(what:String, how:Void->T, ?pos):Promise<T>
     return 
-      Future.sync(path.getContent.catchExceptions(function (data) {
-        return Error.withData('failed to get content of $path', data, pos);
+      Future.lazy(function () return how.catchExceptions(function (data) {
+        return Error.withData('Failed to $what', data, pos);
       }));
+
+  static public function get(path:String, ?pos):Promise<String>
+    return attempt('get content of $path', path.getContent, pos);
+
+  static public function save(path:String, payload:Payload, ?pos):Promise<Noise>
+    return attempt('save to $path', path.saveBytes.bind(payload), pos);
 
   static public function ensureDir(dir:String) {
     var isDir = dir.endsWith('/') || dir.endsWith('\\');
