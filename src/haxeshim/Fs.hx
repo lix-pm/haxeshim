@@ -27,19 +27,38 @@ class Fs {
   static public function save(path:String, payload:Payload, ?pos):Promise<Noise>
     return attempt('save to $path', path.saveBytes.bind(payload), pos);
 
-  static public function ensureDir(dir:String) {
+  static function exists(path:String)
+    return attempt('check the existence of $path', path.exists);
+
+  static public function ensureDir(dir:String):Promise<Noise> {
     var isDir = dir.endsWith('/') || dir.endsWith('\\');
     
     if (isDir)
       dir = dir.removeTrailingSlashes();
       
     var parent = dir.directory();
-    if (parent.removeTrailingSlashes() == dir) return;
-    if (!parent.exists())
-      ensureDir(parent.addTrailingSlash());
-      
-    if (isDir && !dir.exists()) 
-      dir.createDirectory();
+
+    return 
+      if (parent.removeTrailingSlashes() == dir) Noise;
+      else 
+        exists(parent)
+          .next(
+            exists -> 
+              if (exists) Noise
+              else ensureDir(parent.addTrailingSlash())
+          )
+          .next(
+            _ -> 
+              if (isDir) 
+                exists(dir).next(exists -> 
+                  attempt('create directory $dir', () -> { 
+                    if (!exists) dir.createDirectory();
+                    Noise;
+                  })
+                )
+              else
+                Noise
+          );
   }
 
   static public function ifNewer(files:{ src:String, dest:String }) 
@@ -65,7 +84,7 @@ class Fs {
             sys.io.File.copy(src, target);
         }
     
-    copy(src, target, true);
+    return attempt('copy $src to $target recursively', copy.bind(src, target, true));
   }
   
   static public function ls(dir:String, ?filter:String->Bool) {
