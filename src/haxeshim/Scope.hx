@@ -137,7 +137,7 @@ class Scope {
   
   public function reconfigure(changed:Config)     
     return 
-      Fs.save(configFile, config.stringify('  '))
+      Fs.save(configFile, changed.stringify('  '))
         .next(function (n) {
           setConfig(changed);
           return n;
