@@ -130,7 +130,7 @@ class Scope {
     this.configFile.deleteFile();
   
   static public function create(at:String, config:Config) 
-    '$at/$CONFIG_FILE'.saveContent(config.stringify());
+    return Fs.save('$at/$CONFIG_FILE', config.stringify());
   
   static public function exists(at:String)
     return '$at/$CONFIG_FILE'.exists();

@@ -25,9 +25,9 @@ class Fs {
     return attempt('get content of $path', path.getContent, pos);
 
   static public function save(path:String, payload:Payload, ?pos):Promise<Noise>
-    return attempt('save to $path', path.saveBytes.bind(payload), pos);
+    return ensureDir(path).next(_ -> attempt('save to $path', path.saveBytes.bind(payload), pos));
 
-  static function exists(path:String)
+  static public function exists(path:String)
     return attempt('check the existence of $path', path.exists);
 
   static public function ensureDir(dir:String):Promise<Noise> {
@@ -61,30 +61,45 @@ class Fs {
           );
   }
 
+  static function isDirectory(path:String)
+    return attempt('check if $path is a directory', path.isDirectory);
+
   static public function ifNewer(files:{ src:String, dest:String }) 
     return files.src.stat().mtime.getTime() > files.dest.stat().mtime.getTime();
 
+  static public function move(src:String, target:String):Promise<Noise>
+    return 
+      ensureDir(target).next(_ -> attempt('move $src to $target', src.rename.bind(target)));
+
   static public function copy(src:String, target:String, ?filter:String->Bool, ?overwrite:{ src:String, dest:String }->Bool) {
 
-    function copy(src:String, target:String, ensure:Bool) 
-      if (filter == null || filter(src)) 
-        if (src.isDirectory()) {
-          
-          Fs.ensureDir(target.addTrailingSlash());
+    function copy(src:String, target:String, ensure:Bool):Promise<Noise>
+      return 
+        if (filter == null || filter(src)) 
+          isDirectory(src).next(isDir -> 
+            if (isDir) 
+              Fs.ensureDir(target.addTrailingSlash())
+                .next(
+                  _ -> Promise.inParallel([
+                    for (entry in src.readDirectory()) copy('$src/$entry', '$target/$entry', false)
+                  ]).noise()
+                )
+            else (
+              if (ensure)
+                Fs.ensureDir(target)
+              else 
+                Promise.NOISE
+            ).next(_ ->
+              if (overwrite == null || overwrite({ src: src, dest: target })) false
+              else exists(target)
+            ).next(skip ->
+              if (skip) Noise
+              else attempt('copy $src to $target', sys.io.File.copy.bind(src, target))
+            )
+          )
+        else Noise;
 
-          for (entry in src.readDirectory())
-            copy('$src/$entry', '$target/$entry', false);
-
-        }
-        else {
-          if (ensure)
-            Fs.ensureDir(target);
-
-          if (!target.exists() || overwrite == null || overwrite({ src: src, dest: target }))
-            sys.io.File.copy(src, target);
-        }
-    
-    return attempt('copy $src to $target recursively', copy.bind(src, target, true));
+    return copy(src, target, true);
   }
   
   static public function ls(dir:String, ?filter:String->Bool) {
@@ -95,12 +110,15 @@ class Fs {
   }
 
   static public function delete(path:String) 
-    if (path.isDirectory()) {
-      for (file in ls(path)) 
-        delete(file);
-      path.deleteDirectory();
-    }
-    else path.deleteFile();
+    return attempt('delete $path', () -> 
+      if (path != null && path.exists()) 
+        if (path.isDirectory()) {
+          for (file in ls(path)) 
+            delete(file);
+          path.deleteDirectory();
+        }
+        else path.deleteFile()
+    );
   
   static public function peel(file:String, depth:Int) {
     var start = 0;
