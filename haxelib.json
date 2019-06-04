@@ -13,6 +13,7 @@
   "url": "https://github.com/lix-pm/haxeshim/",
   "dependencies": {
     "tink_core": "",
-    "hxnodejs": ""
+    "hxnodejs": "",
+    "ansi": "git:https://github.com/kevinresol/ansi"
   }
 }
