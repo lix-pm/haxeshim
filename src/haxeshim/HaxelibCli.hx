@@ -61,9 +61,8 @@ class HaxelibCli {
     Fs.get('$path/haxelib.json')
       .next(
         function (s) 
-          return 
-            try Success((haxe.Json.parse(s).mainClass :Null<String>))
-            catch (e:Dynamic) Failure(Error.withData('failed to parse haxelib.json', e))
+          try return Success((haxe.Json.parse(s).mainClass :Null<String>))
+          catch (e:Dynamic) return Failure(Error.withData('failed to parse haxelib.json', e))
       )
       .next(
         function (mainClass) return switch mainClass {
