@@ -27,6 +27,7 @@ install:
   - neko -version
   - haxelib version
   - haxelib install travix
+  - haxelib git ansi https://github.com/kevinresol/ansi
   - haxelib run travix install
   - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs
 
