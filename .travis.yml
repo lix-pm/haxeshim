@@ -27,11 +27,12 @@ install:
   - neko -version
   - haxelib version
   - haxelib install travix
+  - haxelib install hx3compat
   - haxelib git ansi https://github.com/kevinresol/ansi
   - haxelib run travix install
   - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs
 
 script:
-  - haxelib run travix node
+  - haxelib run travix node -lib hx3compat
   - haxe all.hxml
   - neko -version
