@@ -128,8 +128,14 @@ class CompilerServer {
         child.stderr.pipe(process.stderr);
       }
       
-      var first = Buffer.from(HaxeCli.checkClassPaths(scope.resolve(ctx.args)).join('\n'));
-      child.stdin.write(frame(Buffer.concat([first, postfix])));
+      switch scope.resolve.bind(ctx.args).catchExceptions() {
+        case Failure(e): 
+          Exec.die(e.code, e.message);
+        case Success(args):
+          var first = Buffer.from(HaxeCli.checkClassPaths(args).join('\n'));
+          child.stdin.write(frame(Buffer.concat([first, postfix])));
+      }
+
     }
     
     function reduce() {
