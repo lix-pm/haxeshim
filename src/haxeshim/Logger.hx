@@ -3,20 +3,33 @@ package haxeshim;
 import ANSI;
 
 class Logger {
-  public function new() {}
+  function new() {}
   public function error(s:String) {}
   public function warning(s:String) {}
   public function info(s:String) {}
   public function success(s:String) {}
   public function progress(s:String) {}
+  static var SILENT:Logger;
+  static var DEFAULT:Logger;
+  static public function get(silent:Bool = false):Logger
+    return 
+      if (silent) {
+        if (SILENT == null) SILENT = new Logger();
+        SILENT;
+      }
+      else {
+        if (DEFAULT == null) DEFAULT = new SysLogger();
+        DEFAULT;
+      }
+       
 }
 
-class SysLogger {
+private class SysLogger extends Logger {
   static var out = {
     ANSI.available = true;
     Sys.stderr();
   }
-  public function new() {}
+  public function new() super();
   function log(level:Level, msg) {
     progress('');
     out.writeString(ANSI.aset(switch level {
@@ -25,16 +38,23 @@ class SysLogger {
       case Info: [DefaultForeground];
       case Success: [Green];
     }) + msg + ANSI.aset([Off]) + '\n');
+    #if !nodejs
+    out.flush();
+    #end
   }
-  public function error(s:String) log(Error, s);
-  public function warning(s:String) log(Warning, s);
-  public function info(s:String) log(Info, s);
-  public function success(s:String) log(Success, s);
-  public function progress(s:String) {
+  override public function error(s:String) log(Error, s);
+  override public function warning(s:String) log(Warning, s);
+  override public function info(s:String) log(Info, s);
+  override public function success(s:String) log(Success, s);
+  override public function progress(s:String) {
+    if (s.length > 80)
+      s = s.substr(0, 77) + '...';
     out.writeString(
       ANSI.eraseLine() + ANSI.setX() + s
     );
+    #if !nodejs
     out.flush();
+    #end
   }
 
 }

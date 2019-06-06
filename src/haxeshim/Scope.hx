@@ -67,7 +67,54 @@ class Scope {
   public var haxeInstallation(default, null):HaxeInstallation;
       
   var resolver:Resolver;
+  var logger = Logger.get(false);
+
+  public function withLogger<T>(logger:Logger, f:Void->T):T {
+    var old = this.logger;
+    this.logger = logger;
+    return Error.tryFinally(
+      f,
+      () -> this.logger = old
+    );
+  }
   
+  public function installLibs():Promise<Noise> 
+    return Attempt.to('install libraries', function () {
+      var i = getInstallationInstructions();
+          
+      var code = 0;
+      
+      switch i.missing {
+        case []:
+        case v:
+          code = 404;
+          for (m in v)
+            logger.error('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
+      }
+
+      var total = i.instructions.install.length + i.instructions.postInstall.length,
+          cur = 0;
+      // for (i in 0...10)
+      //   logger.progress('$i');    
+      // return Noise;
+      for (cmds in [i.instructions.install, i.instructions.postInstall])
+        for (cmd in cmds) {
+          logger.progress('[${++cur}/${total}] $cmd');
+          
+          switch Exec.shell(cmd, Sys.getCwd()) {
+            case Failure(e):
+              // trace(e);
+              code = e.code;
+            default:
+              // trace('ok');
+          }
+        }
+
+      if (code != 0)
+        throw new Error(code, 'failed to install libraries');
+      return Noise;
+    });
+
   function new(haxeshimRoot, isGlobal, scopeDir, cwd) {
     
     this.haxeshimRoot = haxeshimRoot;

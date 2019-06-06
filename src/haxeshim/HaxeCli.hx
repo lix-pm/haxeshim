@@ -19,32 +19,15 @@ class HaxeCli {
     new HaxeCli(gracefully(Scope.seek.bind())).dispatch(Sys.args()); 
   }
   
-  public function installLibs(silent:Bool) {
-    var i = scope.getInstallationInstructions();
-        
-    var code = 0;
-    
-    switch i.missing {
-      case []:
-      case v:
-        code = 404;
-        for (m in v)
-          Sys.stderr().writeString('${m.lib} has no install instruction for missing classpath ${m.cp}\n');
-    }
-    
-    for (cmds in [i.instructions.install, i.instructions.postInstall])
-      for (cmd in cmds) {
-        if (!silent)
-          Sys.println(cmd);
-        switch Exec.shell(cmd, Sys.getCwd()) {
-          case Failure(e):
-            code = e.code;
+  public function installLibs(silent:Bool) 
+    return scope.withLogger(Logger.get(silent), scope.installLibs)
+      .handle(
+        function (o) switch o {
+          case Failure(e): 
+            Sys.exit(e.code);    
           default:
         }
-      }
-    
-    Sys.exit(code);    
-  }  
+      );
 
   static public function checkClassPaths(args:Array<String>) {
     var i = 0;

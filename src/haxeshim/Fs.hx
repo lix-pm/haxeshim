@@ -15,20 +15,15 @@ private abstract Payload(Bytes) from Bytes to Bytes {
 }
 
 class Fs { 
-  static function attempt<T>(what:String, how:Void->T, ?pos):Promise<T>
-    return 
-      Future.lazy(function () return how.catchExceptions(function (data) {
-        return Error.withData('Failed to $what', data, pos);
-      }));
 
   static public function get(path:String, ?pos):Promise<String>
-    return attempt('get content of $path', path.getContent, pos);
+    return Attempt.to('get content of $path', path.getContent, pos);
 
   static public function save(path:String, payload:Payload, ?pos):Promise<Noise>
-    return ensureDir(path).next(_ -> attempt('save to $path', path.saveBytes.bind(payload), pos));
+    return ensureDir(path).next(_ -> Attempt.to('save to $path', path.saveBytes.bind(payload), pos));
 
   static public function exists(path:String)
-    return attempt('check the existence of $path', path.exists);
+    return Attempt.to('check the existence of $path', path.exists);
 
   static public function ensureDir(dir:String):Promise<Noise> {
     var isDir = dir.endsWith('/') || dir.endsWith('\\');
@@ -51,7 +46,7 @@ class Fs {
             _ -> 
               if (isDir) 
                 exists(dir).next(exists -> 
-                  attempt('create directory $dir', () -> { 
+                  Attempt.to('create directory $dir', () -> { 
                     if (!exists) dir.createDirectory();
                     Noise;
                   })
@@ -62,14 +57,14 @@ class Fs {
   }
 
   static function isDirectory(path:String)
-    return attempt('check if $path is a directory', path.isDirectory);
+    return Attempt.to('check if $path is a directory', path.isDirectory);
 
   static public function ifNewer(files:{ src:String, dest:String }) 
     return files.src.stat().mtime.getTime() > files.dest.stat().mtime.getTime();
 
   static public function move(src:String, target:String):Promise<Noise>
     return 
-      ensureDir(target).next(_ -> attempt('move $src to $target', src.rename.bind(target)));
+      ensureDir(target).next(_ -> Attempt.to('move $src to $target', src.rename.bind(target)));
 
   static public function copy(src:String, target:String, ?filter:String->Bool, ?overwrite:{ src:String, dest:String }->Bool) {
 
@@ -94,7 +89,7 @@ class Fs {
               else exists(target)
             ).next(skip ->
               if (skip) Noise
-              else attempt('copy $src to $target', sys.io.File.copy.bind(src, target))
+              else Attempt.to('copy $src to $target', sys.io.File.copy.bind(src, target))
             )
           )
         else Noise;
@@ -110,7 +105,7 @@ class Fs {
   }
 
   static public function delete(path:String) 
-    return attempt('delete $path', () -> 
+    return Attempt.to('delete $path', () -> 
       if (path != null && path.exists()) 
         if (path.isDirectory()) {
           for (file in ls(path)) 
