@@ -30,7 +30,7 @@ install:
   - haxelib install hx3compat
   - haxelib git ansi https://github.com/kevinresol/ansi
   - haxelib run travix install
-  - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs
+  # - haxelib git hxnodejs https://github.com/HaxeFoundation/hxnodejs
 
 script:
   - haxelib run travix node -lib hx3compat
