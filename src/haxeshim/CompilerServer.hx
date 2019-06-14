@@ -132,7 +132,7 @@ class CompilerServer {
         case Failure(e): 
           Exec.die(e.code, e.message);
         case Success(args):
-          var first = Buffer.from(HaxeCli.checkClassPaths(args).join('\n'));
+          var first = Buffer.from(args.join('\n'));
           child.stdin.write(frame(Buffer.concat([first, postfix])));
       }
 
