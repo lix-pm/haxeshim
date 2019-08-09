@@ -25,15 +25,21 @@ class Logger {
 }
 
 private class SysLogger extends Logger {
+  static var isTTY = 
+    #if nodejs 
+      js.Node.process.stderr.isTTY; 
+    #else
+      false;
+    #end
   static var out = {
-    ANSI.available = true;
+    ANSI.available = isTTY;
     Sys.stderr();
   }
   public function new() super();
-  function log(level:Level, msg) {
+  function log(level:Level, msg) if (isTTY) {
     progress('');
     out.writeString(ANSI.aset(switch level {
-      case Error: [Red, ReverseVideo, Blue];
+      case Error: [Red];
       case Warning: [Yellow];
       case Info: [DefaultForeground];
       case Success: [Green];
