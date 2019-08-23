@@ -36,7 +36,7 @@ private class SysLogger extends Logger {
     Sys.stderr();
   }
   public function new() super();
-  function log(level:Level, msg) if (isTTY) {
+  function log(level:Level, msg) {
     progress('');
     out.writeString(ANSI.aset(switch level {
       case Error: [Red];
@@ -48,11 +48,12 @@ private class SysLogger extends Logger {
     out.flush();
     #end
   }
+
   override public function error(s:String) log(Error, s);
   override public function warning(s:String) log(Warning, s);
   override public function info(s:String) log(Info, s);
   override public function success(s:String) log(Success, s);
-  override public function progress(s:String) {
+  override public function progress(s:String) if (isTTY) {
     if (s.length > 80)
       s = s.substr(0, 77) + '...';
     out.writeString(
