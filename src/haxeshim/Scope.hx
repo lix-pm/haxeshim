@@ -209,12 +209,12 @@ class Scope {
     return 
       switch path(version) {
         case Some(path):
-          new HaxeInstallation(path, version, haxelibRepo);
+          new HaxeInstallation(path, version, haxelibRepo, scopeDir);
         case None:
-          new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
+          new HaxeInstallation('$versionDir/$version', version, haxelibRepo, scopeDir);
       }
   
-  function resolveThroughHaxelib(libs:Array<String>) 
+  function resolveThroughHaxelib(libs:Array<String>)
     return 
       switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
         case Success({ status: 0, stdout: stdout }):           
@@ -329,7 +329,7 @@ class Scope {
   static public function seek(?options:SeekingOptions) {
     if (options == null)
       options = {};
-      
+    
     var cwd = switch options.cwd {
       case null: Sys.getCwd();
       case v: v;
@@ -339,14 +339,14 @@ class Scope {
       case null: cwd;
       case v: v;
     }
-    
+
     var haxeshimRoot = switch options.haxeshimRoot {
       case null: DEFAULT_ROOT;
       case v: v;
     }
     
     var make = Scope.new.bind(haxeshimRoot, _, _, cwd);
-        
+
     var ret = switch Fs.findNearest(CONFIG_FILE, startLookingIn.absolutePath()) {
       case Some(v): make(false, v.directory());
       case None: make(true, haxeshimRoot);
