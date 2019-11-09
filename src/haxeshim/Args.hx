@@ -1,80 +1,98 @@
 package haxeshim;
 
 using tink.CoreApi;
+using StringTools;
 
-@:forward
-abstract Args(Array<String>) from Array<String> to Array<String> {
-
-  @:op(a + b) static function raddString(a:Args, b:String):Args
-    return a + [b];
-
-  @:op(a + b) static function laddString(a:String, b:Args):Args
-    return [a] + b;
-
-  @:op(a + b) static function raddArray(a:Args, b:Array<String>):Args
-    return a.concat(b);
-
-  @:op(a + b) static function laddArray(a:Array<String>, b:Args):Args
-    return a.concat(b);
-
-  @:op(a + b) static function add(a:Args, b:Args):Args
-    return laddArray(a, b);
-
-  public function interpolate(resolve:String->Option<String>):{ args:Args, errors:Array<String> } {
-    var errors = [],
-        ret = [];
-
-    for (a in this) {
-      var single = interpolateString(a, resolve);
-      errors = errors.concat(single.errors);
-      ret.push(single.result);
-    }
-
-    return { args: ret, errors: errors };
-  }
-  static public function interpolateString(s:String, resolve:String->Option<String>):{ result:String, errors:Array<String> } {
+class Args {
+  static public function interpolate(s:String, getVar:String->Null<String>) {
     if (s.indexOf("${") == -1)
-      return { result: s, errors: [] };
+      return Success(s);
       
     var ret = new StringBuf(),
-        pos = 0,
-        errors = [];
+        pos = 0;
         
-    function result()
-      return { result: ret.toString(), errors: errors };
-
     while (pos < s.length)
       switch s.indexOf("${", pos) {
         case -1:
           ret.addSub(s, pos);
           break;
         case v:
+          ret.addSub(s, pos, v - pos);
           var start = v + 2;
           var end = switch s.indexOf('}', start) {
             case -1:
-              errors.push('unclosed interpolation in "$s"');
-              ret.addSub(s, pos);
-              return result();
-              -1;//unreachable
+              throw 'unclosed interpolation in $s';
             case v: v;
           }
-          ret.addSub(s, pos, v - pos);
           
           var name = s.substr(start, end - start);
           
           ret.add(
-            switch resolve(name) {
-              case None:
-                errors.push('unresolved variable `$name`');
-                name;
-              case Some(v):
-                v;
+            switch getVar(name) {
+              case null:
+                return Failure('unknown variable $name');
+              case v: v;
             }
           );
           
           pos = end + 1;
       }
     
-    return result();
-  }  
+    return Success(ret.toString());
+  }
+
+  static public function fromMultilineString(
+    source:String, 
+    filename:String, 
+    getVar:String->Null<String>,
+    liftClassPaths:Bool = false // haxelib allows to pass classpaths without -cp
+  ) {
+      
+    var ret = [],
+        errors = [],
+        getVar = 
+          s -> 
+            if (s == '__dirname') haxe.io.Path.directory(filename) 
+            else getVar(s);
+
+    function add(s:String, line:Int)
+      if (s.charAt(0) == '-')
+        ret.push(s);
+      else switch interpolate(s, getVar) {
+        case Success(v):
+          ret.push(v);
+        case Failure(e):
+          errors.push('$filename:$line: $e');
+      }
+
+    var lines = source.split('\n').map(StringTools.trim);
+    for (number in 0...lines.length) {
+      var line = lines[number],
+          add = add.bind(_, number);
+      switch line.charAt(0) {
+        case null:
+        case '-':
+          switch line.indexOf(' ') {
+            case -1:
+              add(line);
+            case v:
+              add(line.substr(0, v));
+              add(line.substr(v).trim());
+          }
+        case '#':
+        default:
+          switch line.trim() {
+            case '':
+            case v:
+              if (liftClassPaths) ret.push('-cp');
+              add(v);
+          }
+      }
+    }
+
+    return switch errors {
+      case []: Success(ret);
+      default: Failure({ errors: errors, args: ret });
+    }
+  }
 }

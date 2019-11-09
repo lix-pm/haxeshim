@@ -94,19 +94,15 @@ class Scope {
 
       var total = i.instructions.install.length + i.instructions.postInstall.length,
           cur = 0;
-      // for (i in 0...10)
-      //   logger.progress('$i');    
-      // return Noise;
+
       for (cmds in [i.instructions.install, i.instructions.postInstall])
         for (cmd in cmds) {
           logger.progress('[${++cur}/${total}] $cmd');
           
           switch Exec.shell(cmd, Sys.getCwd()) {
             case Failure(e):
-              // trace(e);
               code = e.code;
             default:
-              // trace('ok');
           }
         }
 
@@ -163,8 +159,14 @@ class Scope {
 
     this.config = config;
     this.haxeInstallation = getInstallation(config.version);
-    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, getDefault);
+    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, getVar);
   }
+
+  function getVar(variable:String)
+    return switch Sys.getEnv(variable) {
+      case null | '': getDefault(variable);
+      case v: v;
+    }
 
   public function getDefault(variable:String)
     return switch variable {
@@ -228,7 +230,7 @@ class Scope {
       }
 
   public function interpolate(value:String)
-    return Resolver.interpolate(value, getDefault);
+    return Args.interpolate(value, getVar).sure();
 
   function parseDirectives(raw:String) {
     var ret = new Map();

@@ -6,5 +6,6 @@
 -D tink_core
 -D js-es5
 -dce full
+-D no-deprecation-warnings
 lib/hxnodejs/extraParams.hxml
 --macro haxeshim.Build.postprocess()
