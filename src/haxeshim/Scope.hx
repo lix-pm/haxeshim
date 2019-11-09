@@ -66,7 +66,6 @@ class Scope {
   
   public var haxeInstallation(default, null):HaxeInstallation;
       
-  var resolver:Resolver;
   var logger = Logger.get(false);
 
   public function withLogger<T>(logger:Logger, f:Void->T):T {
@@ -159,7 +158,6 @@ class Scope {
 
     this.config = config;
     this.haxeInstallation = getInstallation(config.version);
-    this.resolver = new Resolver(cwd, scopeLibDir, config.resolveLibs, getVar);
   }
 
   function getVar(variable:String)
@@ -216,18 +214,18 @@ class Scope {
           new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
       }
   
-  function resolveThroughHaxelib(libs:Array<String>) 
-    return 
-      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
-        case Success({ status: 0, stdout: stdout }):           
-          Resolver.parseLines(stdout, function (cp) return ['-cp', cp]);
-        case Success({ status: v, stdout: stdout, stderr: stderr }):
-          Sys.stderr().writeString(stdout + stderr);//fun fact: haxelib prints errors to stdout
-          Sys.exit(v);
-          null;
-        case Failure(e):
-          e.throwSelf();
-      }
+  // function resolveThroughHaxelib(libs:Array<String>) 
+  //   return 
+  //     switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
+  //       case Success({ status: 0, stdout: stdout }):           
+  //         Resolver.parseLines(stdout, function (cp) return ['-cp', cp]);
+  //       case Success({ status: v, stdout: stdout, stderr: stderr }):
+  //         Sys.stderr().writeString(stdout + stderr);//fun fact: haxelib prints errors to stdout
+  //         Sys.exit(v);
+  //         null;
+  //       case Failure(e):
+  //         e.throwSelf();
+  //     }
 
   public function interpolate(value:String)
     return Args.interpolate(value, getVar).sure();
@@ -245,14 +243,17 @@ class Scope {
               (switch ret[name] {
                 case null: ret[name] = [];
                 case v: v;
-              }).push(content.substr(v + 1).ltrim());
+              }).push(interpolate(content.substr(v + 1).ltrim()));
           }
       }
     return ret;
   }
 
-  public function getDirectives(lib:String)
-    return Fs.get(Resolver.libHxml(scopeLibDir, lib))
+  public function libHxml(lib:String)
+    return '$scopeLibDir/$lib';
+
+  public function getDirectives(lib:String):Promise<Map<String, Array<String>>>
+    return Fs.get(libHxml(lib))
       .next(parseDirectives);
 
   public function getLibCommand(args:Array<String>) {
@@ -283,13 +284,17 @@ class Scope {
         var path = '$scopeLibDir/$child';
         if (!path.isDirectory() && path.endsWith('.hxml')) {
           var hxml = path.getContent();
-          var args = Resolver.parseLines(hxml);
+          var args = 
+            switch Args.fromMultilineString(hxml, path, getVar) {
+              case Success(args) | Failure({ args: args }):
+                [for (a in args) a.val];
+            }
           var pos = 0,
               max = args.length;
           while (pos < max)
             switch args[pos++] {
               case '-cp':
-                var cp = interpolate(args[pos++]);
+                var cp = args[pos++];
                 
                 if (!cp.exists()) {
                   var dir = parseDirectives(hxml);
@@ -306,7 +311,7 @@ class Scope {
                         case null:
                         case v:
                           for (i in v)
-                            instructions.postInstall.push(interpolate(i));
+                            instructions.postInstall.push(i);
                       }
                   }
                   pos = max;//at this point either the classpath is missing or all install directives are already added to results
@@ -326,7 +331,8 @@ class Scope {
   static public inline var POST_INSTALL = 'post-install';
   
   public function resolve(args:Array<String>):Array<String>
-    return resolver.resolve(args, resolveThroughHaxelib);
+    return [];
+    // return resolver.resolve(args, resolveThroughHaxelib);
   
   static public function seek(?options:SeekingOptions) {
     if (options == null)

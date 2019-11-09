@@ -1,7 +1,6 @@
 package haxeshim;
 
 import haxeshim.Exec.*;
-import haxeshim.HaxeArgs;
 using StringTools;
 using sys.FileSystem;
 using tink.CoreApi;
