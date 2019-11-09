@@ -41,7 +41,11 @@ class Args {
             switch getVar(name) {
               case null:
                 return Failure('unknown variable $name');
-              case v: v;
+              case v: 
+                switch interpolate(v, getVar) {
+                  case Success(v): v;
+                  case ret: return ret;
+                }
             }
           );
           
