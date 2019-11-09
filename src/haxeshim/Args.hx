@@ -31,7 +31,7 @@ class Args {
           var start = v + 2;
           var end = switch s.indexOf('}', start) {
             case -1:
-              throw 'unclosed interpolation in $s';
+              return Failure('unclosed interpolation in $s');
             case v: v;
           }
           
@@ -131,25 +131,31 @@ class Args {
       switch args.shift() {
         case null: flush(); break;
         case arg:
+          function next(step:Arg->Void)
+            switch args.shift() {
+              case null: 
+                errors.push({ pos: arg.pos, message: '${arg.val} without argument' });
+              case v:
+                step(v);
+            }
           switch arg.val {
             case '--next': flush();
             case '--each': each_params = acc; acc = [];
-            case '--connect': throw 'not implemented';
+            case '--connect': 
+              acc.push(arg);
+              next(acc.push);
             case '--run' | '-x': 
               acc = [arg].concat(args);
               args = [];
               flush();
-            case c = '--cwd' | '-C':
-              switch args.shift() {
-                case null: 
-                  errors.push({ pos: arg.pos, message: '$c without argument' });
-                case v:
-                  cwd = resolvePath(args.shift().val);
-                  if (!fs.isDirectory(cwd)) {
-                    errors.push({ pos: v.pos, message: 'Cannot use $cwd as working directory' });//not sure the error is 100% accurate
-                    break;//no point in continuing from here on
-                  }
-              }
+            case '--cwd' | '-C':
+              next(v -> {
+                cwd = resolvePath(args.shift().val);
+                if (!fs.isDirectory(cwd)) {
+                  errors.push({ pos: v.pos, message: 'Cannot use $cwd as working directory' });//not sure the error is 100% accurate
+                  args = [];//no point in continuing from here on
+                }
+              });
             case hxml if (hxml.extension() == 'hxml'):
               switch fs.readFile(hxml) {
                 case Failure(e):
