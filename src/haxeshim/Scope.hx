@@ -214,18 +214,18 @@ class Scope {
           new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
       }
   
-  // function resolveThroughHaxelib(libs:Array<String>) 
-  //   return 
-  //     switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
-  //       case Success({ status: 0, stdout: stdout }):           
-  //         Resolver.parseLines(stdout, function (cp) return ['-cp', cp]);
-  //       case Success({ status: v, stdout: stdout, stderr: stderr }):
-  //         Sys.stderr().writeString(stdout + stderr);//fun fact: haxelib prints errors to stdout
-  //         Sys.exit(v);
-  //         null;
-  //       case Failure(e):
-  //         e.throwSelf();
-  //     }
+  function resolveThroughHaxelib(libs:Array<String>) 
+    return 
+      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
+        case Success({ status: 0, stdout: stdout }):           
+          Args.fromMultilineString(stdout, 'haxelib path', getVar, true);
+        case Success({ status: v, stdout: stdout, stderr: stderr }):
+          Sys.stderr().writeString(stdout + stderr);//fun fact: haxelib prints errors to stdout
+          Sys.exit(v);
+          null;
+        case Failure(e):
+          e.throwSelf();
+      }
 
   public function interpolate(value:String)
     return Args.interpolate(value, getVar).sure();
@@ -330,8 +330,8 @@ class Scope {
   static public inline var INSTALL = 'install';
   static public inline var POST_INSTALL = 'post-install';
   
-  public function resolve(args:Array<String>):Array<String>
-    return [];
+  // public function resolve(args:Array<String>):Array<String>
+  //   return [];
     // return resolver.resolve(args, resolveThroughHaxelib);
   
   static public function seek(?options:SeekingOptions) {
