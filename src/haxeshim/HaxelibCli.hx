@@ -79,7 +79,7 @@ class HaxelibCli {
       case 'run-dir':
         if (args.length < 3)
           Exec.die(402, 'Not enough arguments. Syntax is `haxelib run-dir <name> <path> <...args>');
-        args = args.slice(1).map(scope.interpolate);
+        args = args.slice(1).map(@:privateAccess scope.interpolate);
         var name = args.shift();
         var path = args.shift();
         runDir(name, path, args);

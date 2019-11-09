@@ -227,7 +227,7 @@ class Scope {
           e.throwSelf();
       }
 
-  public function interpolate(value:String)
+  function interpolate(value:String)
     return Args.interpolate(value, getVar).sure();
 
   function parseDirectives(raw:String) {
