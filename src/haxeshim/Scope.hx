@@ -512,26 +512,19 @@ class ResolvedArgs extends Args {
       else Path.join([cwd, path]);
 
   public function checkClassPaths() {
-    var classPaths:Array<Arg> = [for (i in 0...args.length) switch args[i].val {
+
+    var errors = new Errors();
+
+    for (i in 0...args.length) switch args[i].val {
       case '-cp' | '-p' | '--class-path' if (i + 1 < args.length):
         var cp = args[i + 1];
-        { pos: cp.pos, val: resolve(cp.val) };
-      default: continue;
-    }];
-
-    var errors:Array<ErrorMessage> =
-      [for (p in classPaths)
-        try {
-          p.val.readDirectory();
-          continue;
-        }
+        try
+          cp.val.readDirectory()
         catch (e:Dynamic)
-          { pos: p.pos, message: 'classpath ${p.val} is not a directory or cannot be read from' }
-      ];
-
-    switch errors {
-      case []: Success(Noise);
-      case v: Failure(errors);
+          errors.fail('classpath ${cp.val} is not a directory or cannot be read from', cp.pos);
+      default:
     }
+
+    return errors.produce(Noise);
   }
 }

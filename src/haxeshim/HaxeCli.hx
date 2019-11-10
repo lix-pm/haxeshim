@@ -105,20 +105,24 @@ class HaxeCli {
         switch scope.haxeInstallation.compiler {
           case haxe if (haxe.exists()):
 
-            switch scope.getBuilds(args) {
-              case Failure({ errors: errors }):
-                dieFromErrors(errors);
-              case Success(builds):
-                for (b in builds)
-                  switch b.checkClassPaths() {
-                    case Failure(errors): dieFromErrors(errors);
-                    default:
-                      switch Exec.sync(haxe, scope.cwd, checkClassPaths(gracefully(scope.resolve.bind(args))), scope.haxeInstallation.env()) {
-                        case Success(_):
-                        case Failure(e):
-                          die(e.code, e.message);
-                      }
-                  }
+            function get<A>(r:haxeshim.Errors.Result<A>)
+              return
+                switch r {
+                  case Success(ret): ret;
+                  case Failure({ errors: errors }):
+                    dieFromErrors(errors);
+                }
+
+            for (result in get(scope.getBuilds(args))) {
+              var build = get(result);
+
+              get(build.checkClassPaths());
+
+              switch Exec.sync(haxe, scope.cwd, [for (a in build.args) a.val], scope.haxeInstallation.env()) {
+                case Success(_):
+                case Failure(e):
+                  die(e.code, e.message);
+              }
             }
           case path:
             die(404, 'haxe compiler not found at the expected location "$path"');
