@@ -1,6 +1,7 @@
 package haxeshim;
 
 import haxe.ds.ReadOnlyArray;
+import haxeshim.Errors;
 using haxe.io.Path;
 using tink.CoreApi;
 using StringTools;
@@ -10,12 +11,8 @@ typedef Arg = {
   final pos:Pos;
 }
 
-enum Pos {
-  File(path:String, line:Int);
-  Cmd(index:Int);
-}
 class Args {
-  
+
   public final cwd:String;
   public final args:ReadOnlyArray<Arg>;
 
@@ -26,10 +23,10 @@ class Args {
   static public function interpolate(s:String, getVar:String->Null<String>) {
     if (s.indexOf("${") == -1)
       return Success(s);
-      
+
     var ret = new StringBuf(),
         pos = 0;
-        
+
     while (pos < s.length)
       switch s.indexOf("${", pos) {
         case -1:
@@ -43,39 +40,39 @@ class Args {
               return Failure('unclosed interpolation in $s');
             case v: v;
           }
-          
+
           var name = s.substr(start, end - start);
-          
+
           ret.add(
             switch getVar(name) {
               case null:
                 return Failure('unknown variable $name');
-              case v: 
+              case v:
                 switch interpolate(v, getVar) {
                   case Success(v): v;
                   case ret: return ret;
                 }
             }
           );
-          
+
           pos = end + 1;
       }
-    
+
     return Success(ret.toString());
   }
 
   static public function fromMultilineString(
-    source:String, 
-    filename:String, 
+    source:String,
+    filename:String,
     getVar:String->Null<String>,
     liftClassPaths:Bool = false // haxelib allows to pass classpaths without -cp
   ) {
-      
+
     var ret:Array<Arg> = [],
-        errors = [],
-        getVar = 
-          s -> 
-            if (s == '__dirname') haxe.io.Path.directory(filename) 
+        errors = new Errors(),
+        getVar =
+          s ->
+            if (s == '__dirname') haxe.io.Path.directory(filename)
             else getVar(s);
 
     function add(s:String, line:Int) {
@@ -86,7 +83,7 @@ class Args {
       else switch interpolate(s, getVar) {
         case Success(v): add(v);
         case Failure(e):
-          errors.push({ message: e, pos: File(filename, line) });
+          errors.fail(e, File(filename, line));
       }
     }
 
@@ -115,10 +112,7 @@ class Args {
       }
     }
 
-    return switch errors {
-      case []: Success(ret);
-      default: Failure({ errors: errors, args: ret });
-    }
+    return errors.produce(ret);
   }
 
   static public function split(args:Array<String>, cwd:String, fs:Fs, getVar:String->Null<String>) {
@@ -127,14 +121,14 @@ class Args {
         each_params:Array<Arg> = [],
         acc:Array<Arg> = [],
         ret = [],
-        errors = [];
+        errors = new Errors();
 
     function resolvePath(s:String)
-      return 
+      return
         if (s.isAbsolute()) s;
         else Path.join([cwd, s]);
 
-    function flush() 
+    function flush()
       if (acc.length > 0) {
         var build = new Args(cwd, each_params.concat(acc));
         acc = [];
@@ -147,41 +141,35 @@ class Args {
         case arg:
           function next(step:Arg->Void)
             switch args.shift() {
-              case null: 
-                errors.push({ pos: arg.pos, message: '${arg.val} without argument' });
+              case null:
+                errors.fail('${arg.val} without argument', arg.pos);
               case v:
                 step(v);
             }
           switch arg.val {
             case '--next': flush();
             case '--each': each_params = acc; acc = [];
-            case '--connect': 
-              acc.push(arg);
-              next(acc.push);
-            case '--run' | '-x': 
+            case '--run' | '-x':
               acc = [arg].concat(args);
               args = [];
               flush();
             case '--cwd' | '-C':
-              next(v -> {
-                cwd = resolvePath(args.shift().val);
-                if (!fs.isDirectory(cwd)) {
-                  errors.push({ pos: v.pos, message: 'Cannot use $cwd as working directory' });//not sure the error is 100% accurate
-                  args = [];//no point in continuing from here on
-                }
-              });
+              switch args.shift() {
+                case null:
+                  errors.fail('${arg.val} without argument', arg.pos);
+                case v:
+                  cwd = resolvePath(v.val);
+                  if (!fs.isDirectory(cwd)) {
+                    errors.fail('Cannot use $cwd as working directory', v.pos);//not sure the error is 100% accurate
+                    args = [];//no point in continuing from here on
+                  }
+              }
             case hxml if (hxml.extension() == 'hxml'):
               switch fs.readFile(hxml) {
                 case Failure(e):
-                  errors.push({ pos: arg.pos, message: e });
+                  errors.fail(e, arg.pos);
                 case Success(raw):
-                  args = (switch fromMultilineString(raw, hxml, getVar) {
-                    case Success(args):
-                      args;
-                    case Failure({ args: args, errors: e }):
-                      errors = errors.concat(e);
-                      args;
-                  }).concat(args);
+                  args = errors.getResult(fromMultilineString(raw, hxml, getVar)).concat(args);
               }
             default:
               acc.push(arg);

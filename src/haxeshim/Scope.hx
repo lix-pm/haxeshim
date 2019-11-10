@@ -14,13 +14,13 @@ typedef SeekingOptions = {
 }
 
 class Scope {
-  
+
   static var CONFIG_FILE = '.haxerc';
   /**
    * The root directory for haxeshim as configured when the scope was created
    */
   public var haxeshimRoot(default, null):String;
-  
+
   /**
    * Directory where libraries can be cached.
    */
@@ -33,7 +33,7 @@ class Scope {
    * Indicates whether the scope is global
    */
   public var isGlobal(default, null):Bool;
-  
+
   /**
    * The directory of the scope, where the `.haxerc` file was found and also where the `.scopedHaxeLibs` directory is expected
    */
@@ -42,9 +42,9 @@ class Scope {
    * The directory where metadata about the scoped directories is to be found.
    */
   public var scopeLibDir(default, null):String;
-  
+
   /**
-   * Indicates the path the the scope's config file. This is likely to be `'$scopeDir/.haxerc'`, 
+   * Indicates the path the the scope's config file. This is likely to be `'$scopeDir/.haxerc'`,
    * but you should rely on this field to avoid hardcoding assumptions that may break in the future.
    */
   public var configFile(default, null):String;
@@ -53,19 +53,19 @@ class Scope {
    * If the scope is not global, this is almost certainly a subdirectory of `scopeDir`.
    */
   public var cwd(default, null):String;
-  
+
   /**
    * The global haxelib repo on which haxelib operates.
    */
   public var haxelibRepo(default, null):String;
-  
+
   /**
    * The data read from the config file.
    */
   public var config(default, null):Config;
-  
+
   public var haxeInstallation(default, null):HaxeInstallation;
-      
+
   var logger = Logger.get(false);
 
   public function withLogger<T>(logger:Logger, f:Void->T):T {
@@ -76,13 +76,13 @@ class Scope {
       () -> this.logger = old
     );
   }
-  
-  public function installLibs():Promise<Noise> 
+
+  public function installLibs():Promise<Noise>
     return Attempt.to('install libraries', function () {
       var i = getInstallationInstructions();
-          
+
       var code = 0;
-      
+
       switch i.missing {
         case []:
         case v:
@@ -97,7 +97,7 @@ class Scope {
       for (cmds in [i.instructions.install, i.instructions.postInstall])
         for (cmd in cmds) {
           logger.progress('[${++cur}/${total}] $cmd');
-          
+
           switch Exec.shell(cmd, Sys.getCwd()) {
             case Failure(e):
               code = e.code;
@@ -111,25 +111,25 @@ class Scope {
     });
 
   function new(haxeshimRoot, isGlobal, scopeDir, cwd) {
-    
+
     this.haxeshimRoot = haxeshimRoot;
     this.isGlobal = isGlobal;
     this.scopeDir = scopeDir;
     this.scopeLibDir = '$scopeDir/haxe_libraries';
     this.cwd = cwd;
-    
+
     configFile = '$scopeDir/$CONFIG_FILE';
-      
+
     this.versionDir = '$haxeshimRoot/versions';
     this.haxelibRepo = '$haxeshimRoot/haxelib';
     this.libCache = '$haxeshimRoot/haxe_libraries';
   }
-  
+
   public function reload() {
-    var src = 
+    var src =
       try configFile.getContent()
-      catch (e:Dynamic) 
-        throw 
+      catch (e:Dynamic)
+        throw
           if (isGlobal)
             'Global config file $configFile does not exist or cannot be opened';
           else
@@ -172,52 +172,52 @@ class Scope {
       case 'SCOPE_DIR': scopeDir;
       default: null;
     }
-  
-  public function delete() 
+
+  public function delete()
     this.configFile.deleteFile();
-  
-  static public function create(at:String, config:Config) 
+
+  static public function create(at:String, config:Config)
     return Fs.save('$at/$CONFIG_FILE', config.stringify());
-  
+
   static public function exists(at:String)
     return '$at/$CONFIG_FILE'.exists();
-  
-  public function reconfigure(changed:Config)     
-    return 
+
+  public function reconfigure(changed:Config)
+    return
       Fs.save(configFile, changed.stringify('  '))
         .next(function (n) {
           setConfig(changed);
           return n;
         });
 
-  public function withResolution(r:LibResolution) 
-    return 
+  public function withResolution(r:LibResolution)
+    return
       if (config.resolveLibs == r) this;
       else {
         var ret = new Scope(haxeshimRoot, isGlobal, scopeDir, cwd);
         ret.setConfig({ version: config.version, resolveLibs: r });
         ret;
       }
-  
+
   function path(v:String)
-    return 
+    return
       if (v.isAbsolute()) Some(v);
       else if (v.startsWith('./') || v.startsWith('../')) Some('$cwd/$v');
       else None;
 
-  public function getInstallation(version:String) 
-    return 
+  public function getInstallation(version:String)
+    return
       switch path(version) {
         case Some(path):
           new HaxeInstallation(path, version, haxelibRepo);
         case None:
           new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
       }
-  
-  function resolveThroughHaxelib(libs:Array<String>) 
-    return 
+
+  function resolveThroughHaxelib(libs:Array<String>)
+    return
       switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
-        case Success({ status: 0, stdout: stdout }):           
+        case Success({ status: 0, stdout: stdout }):
           Args.fromMultilineString(stdout, 'haxelib path', getVar, true);
         case Success({ status: v, stdout: stdout, stderr: stderr }):
           Sys.stderr().writeString(stdout + stderr);//fun fact: haxelib prints errors to stdout
@@ -258,35 +258,35 @@ class Scope {
 
   public function getLibCommand(args:Array<String>) {
     args = args.map(interpolate);
-    var lib = args.shift();    
-    return 
+    var lib = args.shift();
+    return
       getDirectives(lib)
         .next(function (d) return switch d['run'] {
           case null | []: new Error('no @run directive found for library $lib');
-          case [cmd]: 
+          case [cmd]:
             return Exec.shell.bind([interpolate(cmd)].concat(
               args.map(if (Os.IS_WINDOWS) StringTools.quoteWinArg.bind(_, true) else StringTools.quoteUnixArg)
             ).join(' '), Sys.getCwd(), haxeInstallation.env());
-          default: new Error('more than one @run directive for library $lib'); 
+          default: new Error('more than one @run directive for library $lib');
         });
   }
-  
+
   public function getInstallationInstructions() {
-    
+
     var missing = [],
         instructions = {
           install: [],
           postInstall: [],
         }
-    
+
     if(scopeLibDir.exists())
       for (child in scopeLibDir.readDirectory()) {
         var path = '$scopeLibDir/$child';
         if (!path.isDirectory() && path.endsWith('.hxml')) {
           var hxml = path.getContent();
-          var args = 
+          var args =
             switch Args.fromMultilineString(hxml, path, getVar) {
-              case Success(args) | Failure({ args: args }):
+              case Success(args) | Failure({ result: args }):
                 [for (a in args) a.val];
             }
           var pos = 0,
@@ -295,7 +295,7 @@ class Scope {
             switch args[pos++] {
               case '-cp':
                 var cp = args[pos++];
-                
+
                 if (!cp.exists()) {
                   var dir = parseDirectives(hxml);
                   switch dir[INSTALL] {
@@ -305,7 +305,7 @@ class Scope {
                         cp: cp,
                       });
                     case v:
-                      for (i in v) 
+                      for (i in v)
                         instructions.install.push(i);
                       switch dir[POST_INSTALL] {
                         case null:
@@ -320,7 +320,7 @@ class Scope {
             }
         }
       }
-    
+
     return {
       missing: missing,
       instructions: instructions,
@@ -329,32 +329,89 @@ class Scope {
 
   static public inline var INSTALL = 'install';
   static public inline var POST_INSTALL = 'post-install';
-  
+
+  function resolveArgs(build:Args) {
+    var cwd = this.cwd;
+
+    function resolvePath(p:String)
+      return
+        if (p.isAbsolute()) p;
+        else Path.join([cwd, p]);
+
+    cwd = resolvePath(build.cwd);
+
+    var out = [],
+        haxelibs = [],
+        errors = new Errors(),
+        args = build.args.copy();
+
+    while (args.length > 0) {
+      var arg = args.pop();
+
+      function fail(msg:String)
+        errors.fail(msg, arg.pos);
+
+      switch arg.val {
+        case '-lib':
+          switch args.pop() {
+            case null:
+              fail('-lib requires argument');
+            case lib:
+              switch config.resolveLibs {
+                case Haxelib: haxelibs.push(lib.val);
+                case _ == Mixed => mixed:
+                  var file = libHxml(lib.val);
+                  var content =
+                    try Success(file.getContent())
+                    catch (e:Dynamic) Failure('could not get contents of $file because $e');
+
+                  switch content {
+                    case Success(raw):
+                      args = errors.getResult(Args.fromMultilineString(raw, file, getVar)).concat(args);
+                    case Failure(e):
+                      arg = lib;
+                      if (file.exists()) fail(e);
+                      else if (mixed) haxelibs.push(lib.val);
+                      else fail('-lib ${lib.val} is missing $file');
+                  }
+              }
+          }
+        case forbidden = '--next' | '--each' | '--connect' | '--wait' | '--cwd' | '-C' | '--run' | '-x':
+          fail('$forbidden not allowed here');
+          break;
+        default:
+          out.push(arg);
+      }
+    }
+
+    return errors.produce(@:privateAccess new ResolvedArgs(cwd, out));
+  }
+
   public function resolve(args:Array<String>):Array<String>
     return [];
     // return resolver.resolve(args, resolveThroughHaxelib);
-  
+
   static public function seek(?options:SeekingOptions) {
     if (options == null)
       options = {};
-      
+
     var cwd = switch options.cwd {
       case null: Sys.getCwd();
       case v: v;
     }
-    
+
     var startLookingIn = switch options.startLookingIn {
       case null: cwd;
       case v: v;
     }
-    
+
     var haxeshimRoot = switch options.haxeshimRoot {
       case null: DEFAULT_ROOT;
       case v: v;
     }
-    
+
     var make = Scope.new.bind(haxeshimRoot, _, _, cwd);
-        
+
     var ret = switch Fs.findNearest(CONFIG_FILE, startLookingIn.absolutePath()) {
       case Some(v): make(false, v.directory());
       case None: make(true, haxeshimRoot);
@@ -370,8 +427,8 @@ class Scope {
     }
 
   static public inline var LIBCACHE = 'HAXE_LIBCACHE';
-  
-  static public var DEFAULT_ROOT(default, null):String =  
+
+  static public var DEFAULT_ROOT(default, null):String =
     env('HAXE_ROOT').or(
       env('HAXESHIM_ROOT').or(
         Sys.getEnv(
@@ -380,5 +437,9 @@ class Scope {
         ) + '/haxe'//relying on env variables is always rather brave, but let's try this for now
       )
     );
-  
+
+}
+
+class ResolvedArgs extends Args {
+
 }
