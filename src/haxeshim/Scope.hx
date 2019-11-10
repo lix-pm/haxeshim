@@ -1,5 +1,7 @@
 package haxeshim;
 
+import haxeshim.Args;
+import haxeshim.Errors;
 using sys.io.File;
 using sys.FileSystem;
 using StringTools;
@@ -214,17 +216,15 @@ class Scope {
           new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
       }
 
-  function resolveThroughHaxelib(libs:Array<String>)
+  function resolveThroughHaxelib(libs:Array<Arg>)
     return
-      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat(libs), haxeInstallation.env()) {
+      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat([for (l in libs) l.val]), haxeInstallation.env()) {
         case Success({ status: 0, stdout: stdout }):
           Args.fromMultilineString(stdout, 'haxelib path', getVar, true);
-        case Success({ status: v, stdout: stdout, stderr: stderr }):
-          Sys.stderr().writeString(stdout + stderr);//fun fact: haxelib prints errors to stdout
-          Sys.exit(v);
-          null;
-        case Failure(e):
-          e.throwSelf();
+        case Success(new Error(_.status, _.stdout + _.stderr) => e) | Failure(e):
+          var r = new Errors();
+          r.fail(e.message, Custom('haxelib path'), e.code);
+          r.produce([]);// perhaps return the libs again?
       }
 
   function interpolate(value:String)
@@ -330,7 +330,7 @@ class Scope {
   static public inline var INSTALL = 'install';
   static public inline var POST_INSTALL = 'post-install';
 
-  function resolveArgs(build:Args) {
+  public function resolveArgs(build:Args) {
     var cwd = this.cwd;
 
     function resolvePath(p:String)
@@ -358,7 +358,7 @@ class Scope {
               fail('-lib requires argument');
             case lib:
               switch config.resolveLibs {
-                case Haxelib: haxelibs.push(lib.val);
+                case Haxelib: haxelibs.push(lib);
                 case _ == Mixed => mixed:
                   var file = libHxml(lib.val);
                   var content =
@@ -371,7 +371,7 @@ class Scope {
                     case Failure(e):
                       arg = lib;
                       if (file.exists()) fail(e);
-                      else if (mixed) haxelibs.push(lib.val);
+                      else if (mixed) haxelibs.push(lib);
                       else fail('-lib ${lib.val} is missing $file');
                   }
               }
@@ -383,6 +383,8 @@ class Scope {
           out.push(arg);
       }
     }
+
+    out = out.concat(errors.getResult(resolveThroughHaxelib(haxelibs)));
 
     return errors.produce(@:privateAccess new ResolvedArgs(cwd, out));
   }

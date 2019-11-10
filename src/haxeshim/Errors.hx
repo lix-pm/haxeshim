@@ -6,8 +6,8 @@ using tink.CoreApi;
 class Errors {
   var errors:Array<ErrorMessage> = [];
   public function new() {}
-  public function fail(message:String, pos:Pos)
-    this.errors.push({ message: message, pos: pos });
+  public function fail(message:String, pos:Pos, ?code:Int)
+    this.errors.push({ message: message, pos: pos, code: code });
 
   public function produce<T>(result:T):Result<T>
     return switch errors {
@@ -33,9 +33,11 @@ typedef Result<T> = Outcome<T, {
 typedef ErrorMessage = {
   final message:String;
   final pos:Pos;
+  final ?code:Int;
 }
 
 enum Pos {
   File(path:String, line:Int);
   Cmd(index:Int);
+  Custom(source:String);
 }
