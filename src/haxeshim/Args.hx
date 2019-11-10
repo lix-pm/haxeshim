@@ -176,7 +176,7 @@ class Args {
           }
       }
 
-    return ret;
+    return errors.produce(ret);
   }
 }
 

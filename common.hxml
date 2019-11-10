@@ -4,5 +4,5 @@
 -lib tink_core
 -D js-es5
 -dce full
--D no-deprecation-warnings
+# -D no-deprecation-warnings
 --macro haxeshim.Build.postprocess()

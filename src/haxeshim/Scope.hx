@@ -265,7 +265,7 @@ class Scope {
           case null | []: new Error('no @run directive found for library $lib');
           case [cmd]:
             return Exec.shell.bind([interpolate(cmd)].concat(
-              args.map(if (Os.IS_WINDOWS) StringTools.quoteWinArg.bind(_, true) else StringTools.quoteUnixArg)
+              args.map(if (Os.IS_WINDOWS) haxe.SysTools.quoteWinArg.bind(_, true) else haxe.SysTools.quoteUnixArg)
             ).join(' '), Sys.getCwd(), haxeInstallation.env());
           default: new Error('more than one @run directive for library $lib');
         });
@@ -389,9 +389,34 @@ class Scope {
     return errors.produce(@:privateAccess new ResolvedArgs(cwd, out));
   }
 
-  public function resolve(args:Array<String>):Array<String>
-    return [];
-    // return resolver.resolve(args, resolveThroughHaxelib);
+  static final fs = {
+    isDirectory: function (path:String) return try FileSystem.isDirectory(path) catch (e:Dynamic) false,
+    readFile: function (path:String) return try Success(path.getContent()) catch (e:Dynamic) Failure('Cannot read $path because $e'),
+  }
+
+  @:deprecated public function resolve(args:Array<String>) {
+    var ret = [],
+        errors = new Errors();
+
+    for (build in errors.getResult(Args.split(args, cwd, fs, getVar)))
+      if (build.args.length > 0) {
+        if (ret.length != 0)
+          ret.push('--next');
+
+        ret.push('--cwd');
+        ret.push(build.cwd);
+
+        for (arg in errors.getResult(resolveArgs(build)).args)
+          ret.push(arg.val);
+      }
+
+    switch errors.produce(42) {
+      case Failure(_.errors[0] => e):
+        Sys.exit(switch e.code { case null: 500; case v: v; });
+      default:
+    }
+    return ret;
+  }
 
   static public function seek(?options:SeekingOptions) {
     if (options == null)
