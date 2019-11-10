@@ -345,17 +345,15 @@ class Scope {
         errors = new Errors(),
         args = build.args.copy();
 
-    args.reverse();
-
     while (args.length > 0) {
-      var arg = args.pop();
+      var arg = args.shift();
 
       function fail(msg:String)
         errors.fail(msg, arg.pos);
 
       switch arg.val {
         case '-lib':
-          switch args.pop() {
+          switch args.shift() {
             case null:
               fail('-lib requires argument');
             case lib:
@@ -397,6 +395,7 @@ class Scope {
   }
 
   @:deprecated public function resolve(args:Array<String>) {
+
     var ret = [],
         errors = new Errors();
 
