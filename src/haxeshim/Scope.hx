@@ -330,8 +330,8 @@ class Scope {
   static public inline var INSTALL = 'install';
   static public inline var POST_INSTALL = 'post-install';
   
-  // public function resolve(args:Array<String>):Array<String>
-  //   return [];
+  public function resolve(args:Array<String>):Array<String>
+    return [];
     // return resolver.resolve(args, resolveThroughHaxelib);
   
   static public function seek(?options:SeekingOptions) {

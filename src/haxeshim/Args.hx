@@ -1,19 +1,28 @@
 package haxeshim;
 
+import haxe.ds.ReadOnlyArray;
 using haxe.io.Path;
 using tink.CoreApi;
 using StringTools;
 
-private typedef Arg = {
+typedef Arg = {
   final val:String;
   final pos:Pos;
 }
 
-private enum Pos {
+enum Pos {
   File(path:String, line:Int);
   Cmd(index:Int);
 }
 class Args {
+  
+  public final cwd:String;
+  public final args:ReadOnlyArray<Arg>;
+
+  function new(cwd, args) {
+    this.cwd = cwd;
+    this.args = args;
+  }
   static public function interpolate(s:String, getVar:String->Null<String>) {
     if (s.indexOf("${") == -1)
       return Success(s);
@@ -112,7 +121,7 @@ class Args {
     }
   }
 
-  static public function getBuilds(args:Array<String>, cwd:String, fs:Fs, getVar:String->Null<String>) {
+  static public function split(args:Array<String>, cwd:String, fs:Fs, getVar:String->Null<String>) {
 
     var args:Array<Arg> = [for (i in 0...args.length) { val: args[i], pos: Cmd(i) }],
         each_params:Array<Arg> = [],
@@ -127,8 +136,9 @@ class Args {
 
     function flush() 
       if (acc.length > 0) {
-        ret.push({ cwd: cwd, args: each_params.concat(acc) });
+        var build = new Args(cwd, each_params.concat(acc));
         acc = [];
+        ret.push(build);
       }
 
     while (true)
