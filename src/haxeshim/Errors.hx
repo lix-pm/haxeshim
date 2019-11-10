@@ -36,8 +36,18 @@ typedef ErrorMessage = {
   final ?code:Int;
 }
 
+@:using(haxeshim.Errors.PosTools)
 enum Pos {
   File(path:String, line:Int);
   Cmd(index:Int);
   Custom(source:String);
+}
+
+class PosTools {
+  static public function toString(p:Pos)
+    return switch p {
+      case File(path, line): '$path:$line';
+      case Cmd(index): 'CLI arg#$index';
+      case Custom(source): source;
+    }
 }

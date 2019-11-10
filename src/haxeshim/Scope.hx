@@ -343,7 +343,27 @@ class Scope {
     var out = [],
         haxelibs = [],
         errors = new Errors(),
-        args = build.args.copy();
+        args = [],
+        special = [];
+
+    {
+      var i = 0;
+      while (i < build.args.length) {
+        var arg = build.args[i++];
+        switch arg.val {
+          case '--wait':
+            special.push(arg);
+          case '--connect' | '--display' | '--server-listen' | '--server-connect':
+            special.push(arg);
+            switch build.args[i++] {
+              case null: errors.fail('${arg.val} requires argument', arg.pos);
+              case v: special.push(v);
+            }
+          default:
+            args.push(arg);
+        }
+      }
+    }
 
     while (args.length > 0) {
       var arg = args.shift();
@@ -384,7 +404,9 @@ class Scope {
       }
     }
 
-    out = out.concat(errors.getResult(resolveThroughHaxelib(haxelibs)));
+    out = special
+      .concat(out)
+      .concat(errors.getResult(resolveThroughHaxelib(haxelibs)));
 
     return errors.produce(@:privateAccess new ResolvedArgs(cwd, out));
   }
@@ -392,6 +414,18 @@ class Scope {
   static final fs = {
     isDirectory: function (path:String) return try FileSystem.isDirectory(path) catch (e:Dynamic) false,
     readFile: function (path:String) return try Success(path.getContent()) catch (e:Dynamic) Failure('Cannot read $path because $e'),
+  }
+
+  public function getBuilds(args:Array<String>) {
+
+    var errors = new Errors();
+
+    return
+      errors.produce([
+        for (build in errors.getResult(Args.split(args, cwd, fs, getVar)))
+          if (build.args.length > 0)
+            resolveArgs(build)
+      ]);
   }
 
   @:deprecated public function resolve(args:Array<String>) {
@@ -472,4 +506,32 @@ class Scope {
 
 class ResolvedArgs extends Args {
 
+  function resolve(path:String)
+    return
+      if (path.isAbsolute()) path
+      else Path.join([cwd, path]);
+
+  public function checkClassPaths() {
+    var classPaths:Array<Arg> = [for (i in 0...args.length) switch args[i].val {
+      case '-cp' | '-p' | '--class-path' if (i + 1 < args.length):
+        var cp = args[i + 1];
+        { pos: cp.pos, val: resolve(cp.val) };
+      default: continue;
+    }];
+
+    var errors:Array<ErrorMessage> =
+      [for (p in classPaths)
+        try {
+          p.val.readDirectory();
+          continue;
+        }
+        catch (e:Dynamic)
+          { pos: p.pos, message: 'classpath ${p.val} is not a directory or cannot be read from' }
+      ];
+
+    switch errors {
+      case []: Success(Noise);
+      case v: Failure(errors);
+    }
+  }
 }

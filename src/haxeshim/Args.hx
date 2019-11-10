@@ -165,6 +165,7 @@ class Args {
                   }
               }
             case hxml if (hxml.extension() == 'hxml'):
+              hxml = resolvePath(hxml);
               switch fs.readFile(hxml) {
                 case Failure(e):
                   errors.fail(e, arg.pos);
