@@ -250,7 +250,7 @@ class Scope {
   }
 
   public function libHxml(lib:String)
-    return '$scopeLibDir/$lib';
+    return '$scopeLibDir/$lib.hxml';
 
   public function getDirectives(lib:String):Promise<Map<String, Array<String>>>
     return Fs.get(libHxml(lib))
@@ -345,6 +345,8 @@ class Scope {
         errors = new Errors(),
         args = build.args.copy();
 
+    args.reverse();
+
     while (args.length > 0) {
       var arg = args.pop();
 
@@ -412,9 +414,11 @@ class Scope {
 
     switch errors.produce(42) {
       case Failure(_.errors[0] => e):
+        Sys.println(e.message);
         Sys.exit(switch e.code { case null: 500; case v: v; });
       default:
     }
+
     return ret;
   }
 
