@@ -344,7 +344,8 @@ class Scope {
         haxelibs = [],
         errors = new Errors(),
         args = [],
-        special = [];
+        special = [],
+        runArgs = [];
 
     {
       var i = 0;
@@ -359,6 +360,9 @@ class Scope {
               case null: errors.fail('${arg.val} requires argument', arg.pos);
               case v: special.push(v);
             }
+          case '--run':
+            runArgs = build.args.slice(i - 1);
+            break;
           default:
             args.push(arg);
         }
@@ -406,7 +410,8 @@ class Scope {
 
     out = special
       .concat(out)
-      .concat(errors.getResult(resolveThroughHaxelib(haxelibs)));
+      .concat(errors.getResult(resolveThroughHaxelib(haxelibs)))
+      .concat(runArgs);
 
     return errors.produce(@:privateAccess new ResolvedArgs(cwd, out));
   }
