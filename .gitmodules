@@ -1,9 +1,0 @@
-[submodule "lib/hxnodejs"]
-	path = lib/hxnodejs
-	url = https://github.com/HaxeFoundation/hxnodejs
-[submodule "lib/tink_core"]
-	path = lib/tink_core
-	url = https://github.com/haxetink/tink_core.git
-[submodule "lib/ansi"]
-	path = lib/ansi
-	url = https://github.com/kevinresol/ansi

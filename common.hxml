@@ -1,11 +1,8 @@
 -cp src
--cp lib/ansi/src
--cp lib/hxnodejs/src
--D hxnodejs
--cp lib/tink_core/src
--D tink_core
+-lib ansi
+-lib hxnodejs
+-lib tink_core
 -D js-es5
 -dce full
 -D no-deprecation-warnings
-lib/hxnodejs/extraParams.hxml
 --macro haxeshim.Build.postprocess()
