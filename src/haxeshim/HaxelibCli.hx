@@ -14,7 +14,7 @@ class HaxelibCli {
     switch o {
       case Success(code): Sys.exit(code);
       case Failure(e): Exec.die(e.code, e.message);
-    };    
+    };
 
   var scope:Scope;
   var installation:HaxeInstallation;
@@ -27,7 +27,7 @@ class HaxelibCli {
     this.scope = scope;
     this.installation = scope.haxeInstallation;
   }
-  
+
   public function path(libs:Array<String>) {
     var args = [];
     for(lib in libs) {
@@ -48,7 +48,7 @@ class HaxelibCli {
     Sys.exit(0);
   }
 
-  public function run(args:Array<String>) 
+  public function run(args:Array<String>)
     scope.getLibCommand(args)
       .handle(function (o) switch o {
         case Success(cmd):
@@ -60,15 +60,15 @@ class HaxelibCli {
   public function runDir(name:String, path:String, args:Array<String>) {
     Fs.get('$path/haxelib.json')
       .next(
-        function (s) 
+        function (s)
           try return Success((haxe.Json.parse(s).mainClass :Null<String>))
           catch (e:Dynamic) return Failure(Error.withData('failed to parse haxelib.json', e))
       )
       .next(
         function (mainClass) return switch mainClass {
-          case null: 
+          case null:
             Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
-          case v: 
+          case v:
             new Error('mainClass support not implemented yet');
         }
       ).handle(exitWithCode);
@@ -79,7 +79,7 @@ class HaxelibCli {
       case 'run-dir':
         if (args.length < 3)
           Exec.die(402, 'Not enough arguments. Syntax is `haxelib run-dir <name> <path> <...args>');
-        args = args.slice(1).map(@:privateAccess scope.interpolate);
+        args = args.slice(1).map(scope.interpolate.bind());
         var name = args.shift();
         var path = args.shift();
         runDir(name, path, args);
@@ -92,7 +92,7 @@ class HaxelibCli {
     }
   }
 
-  static function main() 
+  static function main()
     new HaxelibCli(Scope.seek()).dispatch(Sys.args());
-  
+
 }

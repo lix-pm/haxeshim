@@ -162,7 +162,7 @@ class Scope {
     this.haxeInstallation = getInstallation(config.version);
   }
 
-  function getVar(variable:String)
+  public function getVar(variable:String)
     return switch Sys.getEnv(variable) {
       case null | '': getDefault(variable);
       case v: v;
@@ -227,8 +227,14 @@ class Scope {
           r.produce([]);// perhaps return the libs again?
       }
 
-  function interpolate(value:String)
-    return Args.interpolate(value, getVar).sure();
+  public function interpolate(value:String, ?extra:String->Null<String>)
+    return Args.interpolate(value, switch extra {
+      case null: getVar;
+      case fn: s -> switch fn(s) {
+        case null: getVar(s);
+        case v: v;
+      }
+    }).sure();
 
   function parseDirectives(raw:String) {
     var ret = new Map();
@@ -257,7 +263,7 @@ class Scope {
       .next(parseDirectives);
 
   public function getLibCommand(args:Array<String>) {
-    args = args.map(interpolate);
+    args = [for (a in args) interpolate(a)];
     var lib = args.shift();
     return
       getDirectives(lib)

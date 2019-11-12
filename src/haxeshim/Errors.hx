@@ -23,6 +23,15 @@ class Errors {
           errors.push(e);
         r.result;
     }
+
+  static public function getCode(errors:ReadOnlyArray<ErrorMessage>) {
+    for (e in errors)
+      switch e.code {
+        case null:
+        case v: return v;
+      }
+    return 500;
+  }
 }
 
 typedef Result<T> = Outcome<T, {

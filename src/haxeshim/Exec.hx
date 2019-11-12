@@ -18,16 +18,10 @@ class Exec {
     var code = null,
         logger = Logger.get();
 
-    for (e in errors) {
-      switch e.code {
-        case null:
-        case v:
-          if (code == null)
-            code = v;
-      }
+    for (e in errors)
       logger.error(e.pos.toString() + ': ${e.message}');
-    }
-    Sys.exit(code);
+
+    Sys.exit(Errors.getCode(errors));
     return throw 'unreachable';
   }
   static public function gracefully<T>(f:Void->T)

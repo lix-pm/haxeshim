@@ -98,10 +98,10 @@ class Fs {
   }
 
   static public function ls(dir:String, ?filter:String->Bool)
-    return Attempt.to('read directory $dir', () -> [for (entry in dir.readDirectory()) switch '$dir/$entry' {
+    return [for (entry in dir.readDirectory()) switch '$dir/$entry' {
       case included if (filter == null || filter(included)): included;
       default: continue;
-    }]);
+    }];
 
   static public function delete(path:String)
     return Attempt.to('delete $path', () ->
