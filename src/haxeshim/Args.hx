@@ -116,7 +116,6 @@ class Args {
   }
 
   static public function split(args:Array<String>, cwd:String, fs:Fs, getVar:String->Null<String>) {
-
     var args:Array<Arg> = [for (i in 0...args.length) { val: args[i], pos: Cmd(i) }],
         each_params:Array<Arg> = [],
         acc:Array<Arg> = [],

@@ -113,17 +113,22 @@ class HaxeCli {
                     dieFromErrors(errors);
                 }
 
-            for (result in get(scope.getBuilds(args))) {
-              var build = get(result);
-
-              get(build.checkClassPaths());
-
-              switch Exec.sync(haxe, scope.cwd, [for (a in build.args) a.val], scope.haxeInstallation.env()) {
+            function callHaxe(args)
+              switch Exec.sync(haxe, scope.cwd, args, scope.haxeInstallation.env()) {
                 case Success(_):
                 case Failure(e):
                   die(e.code, e.message);
               }
-            }
+
+            if (args.length == 0)
+              callHaxe(args);
+            else
+              for (result in get(scope.getBuilds(args))) {
+                var build = get(result);
+
+                get(build.checkClassPaths());
+                callHaxe([for (a in build.args) a.val]);
+              }
           case path:
             die(404, 'haxe compiler not found at the expected location "$path"');
         }
