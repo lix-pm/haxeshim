@@ -47,8 +47,11 @@ class Exec {
 
   static public function sync(cmd:String, cwd:String, args:Array<String>, ?env:Env)
     return switch spawnSync(cmd, args, { cwd: cwd, stdio: 'inherit', env: mergeEnv(env) } ) {
-      case x if (x.error == null):
-        Success(x.status);
+      case { error: null, status: code }:
+        if (code == 0)
+          Success(0);
+        else
+          Failure(new Error(code, '$cmd exited with $code'));
       case { error: e, status: code }:
         Failure(new Error(code, 'Failed to call $cmd because $e'));
     }
