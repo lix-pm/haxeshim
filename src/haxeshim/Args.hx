@@ -149,7 +149,7 @@ class Args {
             case '--next': flush();
             case '--each': each_params = acc; acc = [];
             case '--run' | '-x':
-              acc = [arg].concat(args);
+              acc = acc.concat([arg].concat(args));
               args = [];
               flush();
             case '--cwd' | '-C':
