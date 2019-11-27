@@ -8,8 +8,9 @@ using tink.CoreApi;
 
 class Exec {
 
-  static public function die(code, reason):Dynamic {
-    Logger.get().error(reason);
+  static public function die(code, ?reason):Dynamic {
+    if (reason != null)
+      Logger.get().error(reason);
     Sys.exit(code);
     return throw 'unreachable';
   }
@@ -48,10 +49,7 @@ class Exec {
   static public function sync(cmd:String, cwd:String, args:Array<String>, ?env:Env)
     return switch spawnSync(cmd, args, { cwd: cwd, stdio: 'inherit', env: mergeEnv(env) } ) {
       case { error: null, status: code }:
-        if (code == 0)
-          Success(0);
-        else
-          Failure(new Error(code, '$cmd exited with $code'));
+        Success(code);
       case { error: e, status: code }:
         Failure(new Error(code, 'Failed to call $cmd because $e'));
     }

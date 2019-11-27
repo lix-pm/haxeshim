@@ -115,7 +115,9 @@ class HaxeCli {
 
             function callHaxe(args)
               switch Exec.sync(haxe, scope.cwd, args, scope.haxeInstallation.env()) {
-                case Success(_):
+                case Success(0):
+                case Success(c):
+                  die(c);
                 case Failure(e):
                   die(e.code, e.message);
               }
