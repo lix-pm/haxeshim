@@ -4,7 +4,7 @@
 # Haxe Shim - a simple wrapper around Haxe
 
 Haxe is great. Greater than unicorns. Unfortunately decent solutions for handling different Haxe versions are like unicorns too: would be awesome but don't exist. Haxeshim tries to fill that gap. It does the following things:
-	
+
 1. Allow having different haxe versions.
 2. Manage `-lib` params without haxelib.
 3. Add `-scoped-hxml <file>` to process hxml files while resolving paths relative to their location.
@@ -14,12 +14,12 @@ Haxe is great. Greater than unicorns. Unfortunately decent solutions for handlin
 
 At the bottom line this project merely decouples a number of things that are currently just mushed together in the standard Haxe distribution. The decomposition itself would be highly advisable to apply there too, but attempts to argue for that have shown no effect, so an independent effort would seem to be the only way forward.
 
-The project is currently based on nodejs for execution and distributed through NPM, due to their ubiquity. The command line interfaces aside, much of the code is written against Haxe's sys APIs and should thus be portable to other targets, as it should be, because currently it adds quite an overhead to compilation time (~100ms). Some of it can be optimized away, but given that invoking nodejs alone comes with quite an overhead, a truly optimized solution will have to rely on a different runtime. 
+The project is currently based on nodejs for execution and distributed through NPM, due to their ubiquity. The command line interfaces aside, much of the code is written against Haxe's sys APIs and should thus be portable to other targets, as it should be, because currently it adds quite an overhead to compilation time (~100ms). Some of it can be optimized away, but given that invoking nodejs alone comes with quite an overhead, a truly optimized solution will have to rely on a different runtime.
 
 ## Haxe version management
 
 Haxeshim has a "root" directory, depending on platform:
-	
+
 - on Windows it is `%APPDATA%/haxe`
 - elsewhere it is `${HOME}/haxe`
 
@@ -28,7 +28,7 @@ It can always be overwritten with the `HAXESHIM_ROOT` environment variable.
 When running the `haxe` command, we scan from the CWD up for a `.haxerc` and if non is found we look in the "root" directory. Every `.haxerc` defines what we consider a "scope" for all subdirectories (except those which contain `.haxerc` files to define new scopes).
 
 The contents of this file are stored as JSON and defined like so:
-	
+
 ```haxe
 typedef Config = {
   var version(default, null):String;
@@ -49,7 +49,7 @@ We'll cover library resultion below. As for execution of the haxe compiler itsel
 Currently `haxe` depends on `haxelib` to resolve `-lib` parameters. Haxeshim breaks this dependency apart, because it's the only sensible thing to do really. Haxelib was an excellent tool when it was released over a decade ago, but it's a bit dusty and improving it is extremely hard because of this strong dependency. Compare this to nodejs, where `require` follows a set of very specific rules where to look for modules and thus looks in the appropriate `node_modules`. NPM simply leverages this behavior to install packages where they are expected.
 
 Haxeshim builds on the idea that every scope has a single version of a library. Normally you will want scopes to coincide with projects. There are three different resolution strategies:
-	
+
 ### Scoped (the default)
 
 Any parameters that are passed to haxeshim are parsed, including hxmls and the `-lib` parameters are "intercepted". To resolve these, we look for a `haxe_libraries/<libName>.hxml` and parse the parameters therein. If they are `-lib` parameters we process them accordingly. Note that in this case, specifying library versions as with `-lib name:version` is not allowed.
@@ -64,7 +64,7 @@ This is a mix of both approaches. Libraries that are not found using scoped reso
 
 ## Support for "scoped" hxml files
 
-Suppose you have set up a project in `~/projects/piratepig/` and you want to use its build configuration defined in `arrrrr.hxml` from another project. If you use `-scoped-hxml ~/projects/piratepig/aye.hxml` then all the libraries referenced therein are resolved within the scope of the project. 
+Suppose you have set up a project in `~/projects/piratepig/` and you want to use its build configuration defined in `arrrrr.hxml` from another project. If you use `-scoped-hxml ~/projects/piratepig/aye.hxml` then all the libraries referenced therein are resolved within the scope of the project.
 
 If a project has a specific build configuration that you wish to reuse, you can also add it as a git submodule and reuse its hxmls in such a manner.
 
@@ -78,11 +78,11 @@ There are two things to be aware of:
 You can run haxeshim extensions through `haxe --run <extension-name> [...args]`. Any `extension-name` must be lower case and contain at least one `-` sign to avoid collisions with `haxe --run <some.path.ClassName>`.
 
 Currently, the following extensions are implemented:
-  
+
 - `install-libs`: this will go through all library hxmls in `haxe_libraries` and in case of missing class paths will pick up `@install:` and `@post-install` directives and execute them or report an error if none are present. Note that first all `@install` directives are run, and then all `@post-install` directives are run. Beyond that, consider the order strictly undefined.
 - `resolve-args`: will resolve all the following arguments based on haxeshim's rules and prints each resulting argument on a single line.
 - `show-version`: will report the current haxe version like so:
-  
+
   ```hxml
   -D haxe-ver=<theVersion>
   -cp <pathToStdLib>
@@ -130,20 +130,16 @@ To build, you will obviously need a Haxe version (haxe 3.4.0-rc.2 is known to wo
 
 Windows support seems ok on Windows 8.1 and 10.
 
-The tool does the following nasty things:
-  
-1. Places `.exe` files near the `haxe.cmd` and `haxelib.cmd` files that NPM creates. The `.exe` files to nothing but call the `.cmd` file of the same name. This is because calling `.cmd` in batch stops execution. Try running this from a batch file to observe the behavior:
-  
+The tool attemps to place a `.exe` files near the `haxe.cmd` and `haxelib.cmd` files that NPM creates. The `.exe` files to nothing but call the `.cmd` file of the same name. This is because calling `.cmd` in batch stops execution. Try running this from a batch file to observe the behavior:
+
   ```
   haxe -version
   haxe -version
   haxe.cmd -version
   haxe.cmd -version
   ```
-  
-  It also places a fake `CHANGES.txt` into the npm command directory in a rather futile attempt to please FlashDevelop/HaxeDevelop.
-  
-2. Replaces the `haxe.exe` and `haxelib.exe` of the standard distribution, in case that one has precedence. The original files are backed up, just in case you wanna go back.
+
+It also places a fake `CHANGES.txt` into the npm command directory in a rather futile attempt to please FlashDevelop/HaxeDevelop.
 
 ### Linux
 
