@@ -375,6 +375,8 @@ class Scope {
       }
     }
 
+    var libs = new Map();
+
     while (args.length > 0) {
       var arg = args.shift();
 
@@ -387,23 +389,25 @@ class Scope {
             case null:
               fail('-lib requires argument');
             case lib:
-              switch config.resolveLibs {
-                case Haxelib: haxelibs.push(lib);
-                case _ == Mixed => mixed:
-                  var file = libHxml(lib.val);
-                  var content =
-                    try Success(file.getContent())
-                    catch (e:Dynamic) Failure('could not get contents of $file because $e');
+              if (!libs[lib.val]) {
+                libs[lib.val] = true;
+                switch config.resolveLibs {
+                  case Haxelib: haxelibs.push(lib);
+                  case _ == Mixed => mixed:
+                    var file = libHxml(lib.val);
+                    var content =
+                      try Success(file.getContent())
+                      catch (e:Dynamic) Failure('could not get contents of $file because $e');
 
-                  switch content {
-                    case Success(raw):
-                      args = errors.getResult(Args.fromMultilineString(raw, file, getVar)).concat(args);
-                    case Failure(e):
-                      arg = lib;
-                      if (file.exists()) fail(e);
-                      else if (mixed) haxelibs.push(lib);
-                      else fail('-lib ${lib.val} is missing $file');
-                  }
+                    switch content {
+                      case Success(raw):
+                        args = errors.getResult(Args.fromMultilineString(raw, file, getVar)).concat(args);
+                      case Failure(e):
+                        if (file.exists()) fail(e);
+                        else if (mixed) haxelibs.push(lib);
+                        else fail('-lib ${lib.val} is missing $file');
+                    }
+                }
               }
           }
         case forbidden = '--next' | '--each' | '--connect' | '--wait' | '--cwd' | '-C' | '--run' | '-x':
