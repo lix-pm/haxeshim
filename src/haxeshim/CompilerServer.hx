@@ -63,7 +63,18 @@ class CompilerServer {
   function stdio() {
 
     js.node.Fs.watch(scope.configFile, { persistent: false }, function (_, _) {
-      scope.reload();
+      var max = 10;
+      function attempt(count = 0) {
+        try scope.reload()
+        catch (e:Dynamic) {
+          if (count >= max) {
+            Logger.get().error('Reloading .haxerc after change detected failed $max times!');
+            Sys.exit(500);
+          }
+          else haxe.Timer.delay(attempt.bind(count + 1), 100);
+        }
+      }
+      attempt();
     });
 
     var child:ChildProcess = null;
