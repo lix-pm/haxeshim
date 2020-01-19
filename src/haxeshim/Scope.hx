@@ -172,6 +172,7 @@ class Scope {
     return switch variable {
       case 'HAXESHIM_LIBCACHE' | LIBCACHE: libCache;
       case 'SCOPE_DIR': scopeDir;
+      case 'CWD': cwd;
       default: null;
     }
 
@@ -453,8 +454,10 @@ class Scope {
         if (ret.length != 0)
           ret.push('--next');
 
-        ret.push('--cwd');
-        ret.push(build.cwd);
+        if (build.cwd != cwd) {
+          ret.push('--cwd');
+          ret.push(build.cwd);
+        }
 
         for (arg in errors.getResult(resolveArgs(build)).args)
           ret.push(arg.val);
