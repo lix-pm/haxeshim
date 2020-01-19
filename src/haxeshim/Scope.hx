@@ -124,7 +124,10 @@ class Scope {
 
     this.versionDir = '$haxeshimRoot/versions';
     this.haxelibRepo = '$haxeshimRoot/haxelib';
-    this.libCache = '$haxeshimRoot/haxe_libraries';
+    this.libCache = switch [Sys.getEnv('HAXESHIM_LIBCACHE'), Sys.getEnv(LIBCACHE)] {
+      case [null, null]: '$haxeshimRoot/haxe_libraries';
+      case [null, v] | [v, _]: v;
+    }
   }
 
   public function reload() {
