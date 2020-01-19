@@ -11,7 +11,7 @@ class NekoCli {
       else 'neko';
 
     var args = Sys.args(),
-        cwd = cwd = Sys.getCwd();
+        cwd = Sys.getCwd();
     #if false
     switch args[0] {
       case '-i':
