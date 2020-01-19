@@ -44,7 +44,7 @@ class HaxelibCli {
       else if(v.charCodeAt(0) == '-'.code) out.push('$v ${resolved[++i]}');
       i++;
     }
-    Sys.println(out.join('\n'));
+    Sys.print(out.join('\n'));
     Sys.exit(0);
   }
 
@@ -92,7 +92,11 @@ class HaxelibCli {
     }
   }
 
-  static function main()
+  static function main() {
+    #if nodejs
+    js.Node.process.stdout.on('error', function () {});//hxcpp apparently closes stdout and then writing to it fails
+    #end
     new HaxelibCli(Scope.seek()).dispatch(Sys.args());
+  }
 
 }
