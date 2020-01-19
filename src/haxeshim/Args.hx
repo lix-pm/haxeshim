@@ -172,6 +172,12 @@ class Args {
                 case Success(raw):
                   args = errors.getResult(fromMultilineString(raw, hxml, getVar)).concat(args);
               }
+            case v if (v.startsWith("${")):
+              switch interpolate(v, getVar) {
+                case Success(v): acc.push({ val: v, pos: arg.pos });
+                case Failure(e):
+                  errors.fail(e, arg.pos);
+              }
             default:
               acc.push(arg);
           }
