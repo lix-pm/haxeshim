@@ -54,8 +54,9 @@ class NekoCli {
       }
 
     args = args.slice(pos);
+    #else
+    var env = {};
     #end
-
     Sys.exit(
       switch Exec.sync(Neko.PATH + '/$binary', cwd, args, Neko.ENV.mergeInto(env)) {
         case Success(c):
