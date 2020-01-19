@@ -94,7 +94,8 @@ class Scope {
       }
 
       var total = i.instructions.install.length + i.instructions.postInstall.length,
-          cur = 0;
+          cur = 0,
+          installed = 0;
 
       for (cmds in [i.instructions.install, i.instructions.postInstall])
         for (cmd in cmds) {
@@ -104,11 +105,18 @@ class Scope {
             case Failure(e):
               code = e.code;
             default:
+              installed++;
           }
         }
 
+      var libs =
+        if (total == 1) 'library'
+        else 'libraries';
+
       if (code != 0)
-        throw new Error(code, 'failed to install libraries');
+        throw new Error(code, 'Failed to install ${total - installed}/$total $libs.');
+      else if (total > 0)
+        logger.success('Installed $total $libs.');
       return Noise;
     });
 

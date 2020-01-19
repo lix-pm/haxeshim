@@ -23,6 +23,7 @@ class HaxeCli {
       .handle(
         function (o) switch o {
           case Failure(e):
+            Logger.get().error(e.message);
             Sys.exit(e.code);
           default:
         }
