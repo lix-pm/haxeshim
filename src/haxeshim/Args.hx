@@ -48,7 +48,8 @@ class Args {
               case null:
                 return Failure('unknown variable $name');
               case v:
-                switch interpolate(v, getVar) {
+                if (v == '$${$name}') v;
+                else switch interpolate(v, getVar) {
                   case Success(v): v;
                   case ret: return ret;
                 }
