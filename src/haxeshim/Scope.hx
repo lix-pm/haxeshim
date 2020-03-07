@@ -378,7 +378,7 @@ class Scope {
               case null: errors.fail('${arg.val} requires argument', arg.pos);
               case v: special.push(v);
             }
-          case '--run':
+          case '--run' | '-x':
             runArgs = build.args.slice(i - 1);
             break;
           default:
