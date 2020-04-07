@@ -47,7 +47,7 @@ class PostInstall {
       var exe = '$dir/$name.exe';
       try {
         exe.saveBytes(makeExe('node "$source/${name}shim.js"'));
-        var code = try Sys.command(exe) catch (e:Dynamic) 500;
+        var code = try Sys.command(exe, [if (name == 'haxelib') 'version' else '-version']) catch (e:Dynamic) 500;
         if (code != 0) {
           Sys.println('Warning: Windows will not allow executing shimmed $name.exe. It will be removed.');
           try exe.deleteFile()
