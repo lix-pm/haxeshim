@@ -548,7 +548,7 @@ class ResolvedArgs extends Args {
       case '-cp' | '-p' | '--class-path' if (i + 1 < args.length):
         var cp = args[i + 1];
         try
-          cp.val.readDirectory()
+          resolve(cp.val).readDirectory()
         catch (e:Dynamic)
           errors.fail('classpath ${cp.val} is not a directory or cannot be read from', cp.pos);
       default:
