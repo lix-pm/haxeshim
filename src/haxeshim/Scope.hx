@@ -311,7 +311,7 @@ class Scope {
               max = args.length;
           while (pos < max)
             switch args[pos++] {
-              case '-cp':
+              case '-cp' | '-p' | '--class-path':
                 var cp = args[pos++];
 
                 if (!cp.exists()) {
@@ -396,7 +396,7 @@ class Scope {
         errors.fail(msg, arg.pos);
 
       switch arg.val {
-        case '-lib':
+        case '-lib', '--lib', '-L':
           switch args.shift() {
             case null:
               fail('-lib requires argument');
@@ -422,7 +422,7 @@ class Scope {
                 }
               }
           }
-        case forbidden = '--next' | '--each' | '--connect' | '--wait' | '--cwd' | '-C' | '--run' | '-x':
+        case forbidden = '--next' | '--each' | '--connect' | '--wait' | '--cwd' | '-C' | '--run':
           fail('$forbidden not allowed here');
           break;
         default:
