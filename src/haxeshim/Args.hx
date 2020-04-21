@@ -165,13 +165,7 @@ class Args {
                   }
               }
             case hxml if (hxml.extension() == 'hxml'):
-              hxml = resolvePath(hxml);
-              switch fs.readFile(hxml) {
-                case Failure(e):
-                  errors.fail(e, arg.pos);
-                case Success(raw):
-                  args = errors.getResult(fromMultilineString(raw, hxml, getVar)).concat(args);
-              }
+              args = readHxml(resolvePath(hxml), fs, getVar, errors, arg.pos).concat(args);
             case v if (v.startsWith("${")):
               switch interpolate(v, getVar) {
                 case Success(v): acc.push({ val: v, pos: arg.pos });
@@ -185,6 +179,16 @@ class Args {
 
     return errors.produce(ret);
   }
+
+  static public function readHxml(hxml, fs:Fs, getVar, errors:Errors, pos)
+    return
+      switch fs.readFile(hxml) {
+        case Failure(e):
+          errors.fail(e, pos);
+          [];
+        case Success(raw):
+          errors.getResult(fromMultilineString(raw, hxml, getVar));
+      }
 }
 
 private typedef Fs = {

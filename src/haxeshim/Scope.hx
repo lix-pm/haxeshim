@@ -407,11 +407,8 @@ class Scope {
                   case Haxelib: haxelibs.push(lib);
                   case _ == Mixed => mixed:
                     var file = libHxml(lib.val);
-                    var content =
-                      try Success(file.getContent())
-                      catch (e:Dynamic) Failure('could not get contents of $file because $e');
 
-                    switch content {
+                    switch fs.readFile(file) {
                       case Success(raw):
                         args = errors.getResult(Args.fromMultilineString(raw, file, getVar)).concat(args);
                       case Failure(e):
@@ -422,6 +419,8 @@ class Scope {
                 }
               }
           }
+        case hxml if (hxml.endsWith('.hxml')):
+          args = Args.readHxml(resolvePath(hxml), fs, getVar, errors, arg.pos).concat(args);
         case forbidden = '--next' | '--each' | '--connect' | '--wait' | '--cwd' | '-C' | '--run':
           fail('$forbidden not allowed here');
           break;
