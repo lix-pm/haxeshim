@@ -232,7 +232,19 @@ class Scope {
     return
       switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat([for (l in libs) l.val]), haxeInstallation.env()) {
         case Success({ status: 0, stdout: stdout }):
-          Args.fromMultilineString(stdout, 'haxelib path', getVar, true);
+          Args.fromMultilineString(stdout, 'haxelib path', getVar, true)
+            .map(args -> {
+              for (i in 0...args.length)
+                switch args[i].val {
+                  case '-L':
+                    function set(i, f)
+                      args[i] = { pos: args[i].pos, val: f(args[i].val) };
+                    set(i, _ -> '-lib');
+                    set(i + 1, lib -> 'ndll:$lib');
+                  default:
+                }
+              args;
+            });
         case Success(new Error(_.status, _.stdout + _.stderr) => e) | Failure(e):
           var r = new Errors();
           r.fail(e.message, Custom('haxelib path'), e.code);
@@ -400,6 +412,9 @@ class Scope {
           switch args.shift() {
             case null:
               fail('-lib requires argument');
+            case v = Args.getNdll(_.val) => Some(_):
+              out.push(arg);
+              out.push(v);
             case lib:
               if (!libs[lib.val]) {
                 libs[lib.val] = true;

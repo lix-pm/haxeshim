@@ -116,6 +116,14 @@ class Args {
     return errors.produce(ret);
   }
 
+  static public function getNdll(s:String)
+    return
+      if (s.startsWith('ndll:')) Some(s.substr(5));
+      else None;
+
+  static public function makeNdll(s:String)
+    return 'ndll:$s';
+
   static public function split(args:Array<String>, cwd:String, fs:Fs, getVar:String->Null<String>) {
     var args:Array<Arg> = [for (i in 0...args.length) { val: args[i], pos: Cmd(i) }],
         each_params:Array<Arg> = [],

@@ -2,6 +2,7 @@ package haxeshim;
 
 using tink.CoreApi;
 using haxe.io.Path;
+using StringTools;
 
 class HaxelibCli {
   static function exit<T>(o:Outcome<T, Error>)
@@ -29,21 +30,39 @@ class HaxelibCli {
   }
 
   public function path(libs:Array<String>) {
-    var args = [];
-    for(lib in libs) {
-      args.push('-lib');
-      args.push(lib.split(':')[0]);
-    }
-    var resolved = Exec.gracefully(scope.resolve.bind(args));
-    var out = [];
-    var i = 0;
+    var args = [],
+        out = [];
+
+    for (lib in libs)
+      switch Args.getNdll(lib) {
+        case Some(v):
+          out.push('-L $v');
+        default:
+          args.push('-lib');
+          args.push(lib.split(':')[0]);
+      }
+
+    var resolved = Exec.gracefully(scope.resolve.bind(args)),
+        i = 0;
+
     while(i < resolved.length) {
-      var v = resolved[i];
-      if(v == '--cwd') i++; // skip
-      else if(v == '-cp') out.push(resolved[++i].addTrailingSlash());
-      else if(v.charCodeAt(0) == '-'.code) out.push('$v ${resolved[++i]}');
+      switch resolved[i] {
+        case '-lib':
+          switch resolved[++i] {
+            case Args.getNdll(_) => Some(v):
+              out.push('-L $v');
+            case wtf:
+              Sys.println('Unexpected -lib $wtf returned from haxelib path ${libs.join(' ')}');
+              Sys.exit(500);
+          }
+        case '--cwd': i++; // skip
+        case '-cp': out.push(resolved[++i].addTrailingSlash());
+        case v if (v.charCodeAt(0) == '-'.code): out.push('$v ${resolved[++i]}');
+        default:
+      }
       i++;
     }
+
     Sys.print(out.join('\n'));
     Sys.exit(0);
   }
