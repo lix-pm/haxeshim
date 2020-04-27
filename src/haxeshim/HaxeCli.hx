@@ -13,7 +13,7 @@ class HaxeCli {
     this.scope = scope;
   }
 
-  static public function exec<T>(fn:Array<String>->T) {
+  static public function withArgs<T>(fn:Array<String>->T) {
     var args = Sys.args();
     if (args[0] == '--cwd') {
       args.shift();
@@ -25,9 +25,14 @@ class HaxeCli {
     return fn(args);
   }
 
+  static public function run(args) {
+    Neko.setEnv();
+    new HaxeCli(gracefully(Scope.seek.bind())).dispatch(args);
+  }
+
   static function main() {
     Neko.setEnv();
-    exec(new HaxeCli(gracefully(Scope.seek.bind())).dispatch);
+    withArgs(run);
   }
 
   public function installLibs(silent:Bool)
