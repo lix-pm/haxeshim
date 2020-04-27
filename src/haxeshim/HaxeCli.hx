@@ -13,9 +13,21 @@ class HaxeCli {
     this.scope = scope;
   }
 
+  static public function exec<T>(fn:Array<String>->T) {
+    var args = Sys.args();
+    if (args[0] == '--cwd') {
+      args.shift();
+      switch args.shift() {
+        case null: die(500, '--cwd requires argument');
+        case v: Sys.setCwd(v);
+      }
+    }
+    return fn(args);
+  }
+
   static function main() {
     Neko.setEnv();
-    new HaxeCli(gracefully(Scope.seek.bind())).dispatch(Sys.args());
+    exec(new HaxeCli(gracefully(Scope.seek.bind())).dispatch);
   }
 
   public function installLibs(silent:Bool)
@@ -114,7 +126,7 @@ class HaxeCli {
                     dieFromErrors(errors);
                 }
 
-            function callHaxe(args, cwd) 
+            function callHaxe(args, cwd)
               switch Exec.sync(haxe, cwd, args, scope.haxeInstallation.env()) {
                 case Success(0):
                 case Success(c):

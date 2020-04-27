@@ -116,6 +116,10 @@ Haxeshim makes all class paths absolute during resolution, then uses the final c
 -cp src3
 ```
 
+### Leading `--cwd` for scope selection
+
+If the very first argument pair is a `--cwd dir` then that is used not only as a cwd for the haxe process, but also as the initial entrypoint for scope resolution. Note that `--cwd` inside hxmls are *not* taken into account for scope selection.
+
 ## Security implications
 
 It is true that haxeshim kinda bypasses access control, allowing users to accidentally have their haxe command hijacked in some malicious way. Given though that anything running with the current user's privileges can tamper with the installed haxelibs and every haxelib using extraParams.hxml can execute arbitrary code with whatever privileges `haxe` was invoked with, we're not making it any worse.
