@@ -7,7 +7,7 @@ using StringTools;
 
 class Build { 
   static macro function postprocess() {
-    var prefix = '#!/usr/bin/env node\n\n';
+    var prefix = '#!/usr/bin/env node\n';
     Context.onAfterGenerate(function () {
       
       var file = Compiler.getOutput();
