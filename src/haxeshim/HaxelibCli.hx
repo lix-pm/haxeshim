@@ -80,15 +80,15 @@ class HaxelibCli {
     Fs.get('$path/haxelib.json')
       .next(
         function (s)
-          try return Success((haxe.Json.parse(s).mainClass :Null<String>))
+          try return Success((haxe.Json.parse(s).main :Null<String>))
           catch (e:Dynamic) return Failure(Error.withData('failed to parse haxelib.json', e))
       )
       .next(
-        function (mainClass) return switch mainClass {
+        function (main) return switch main {
           case null:
             Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
           case v:
-            new Error('mainClass support not implemented yet');
+            Exec.sync('haxe', path, ['--run', main].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
         }
       ).handle(exitWithCode);
   }
