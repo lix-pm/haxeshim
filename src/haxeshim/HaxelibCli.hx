@@ -3,6 +3,7 @@ package haxeshim;
 using tink.CoreApi;
 using haxe.io.Path;
 using StringTools;
+using sys.FileSystem;
 
 class HaxelibCli {
   static function exit<T>(o:Outcome<T, Error>)
@@ -88,7 +89,15 @@ class HaxelibCli {
           case null:
             Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
           case v:
-            Exec.sync('haxe', path, ['--run', main].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
+            switch installation.compiler {
+              case haxe if (haxe.exists()):
+                Exec.sync(haxe, path, 
+                  ['--run', main].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), 
+                  { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name }
+                );
+              case path:
+                Exec.die(404, 'haxe compiler not found at the expected location "$path"');
+            }
         }
       ).handle(exitWithCode);
   }
