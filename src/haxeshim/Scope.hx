@@ -223,9 +223,9 @@ class Scope {
     return
       switch path(version) {
         case Some(path):
-          new HaxeInstallation(path, version, haxelibRepo);
+          new HaxeInstallation(path, version, haxelibRepo, scopeDir);
         case None:
-          new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
+          new HaxeInstallation('$versionDir/$version', version, haxelibRepo, scopeDir);
       }
 
   function resolveThroughHaxelib(libs:Array<Arg>)
@@ -501,7 +501,7 @@ class Scope {
   static public function seek(?options:SeekingOptions) {
     if (options == null)
       options = {};
-
+    
     var cwd = switch options.cwd {
       case null: Sys.getCwd();
       case v: v;

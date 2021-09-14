@@ -124,7 +124,9 @@ class HaxelibCli {
     #if nodejs
     js.Node.process.stdout.on('error', function () {});//hxcpp apparently closes stdout and then writing to it fails
     #end
-    new HaxelibCli(Scope.seek()).dispatch(Sys.args());
+    new HaxelibCli(Scope.seek({
+        cwd: Sys.getEnv('SCOPE_PATH')
+    })).dispatch(Sys.args());
   }
 
 }
