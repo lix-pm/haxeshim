@@ -67,6 +67,35 @@ class HaxelibCli {
     Sys.print(out.join('\n'));
     Sys.exit(0);
   }
+  
+  public function libpath(libs:Array<String>) {
+    // resolving libpath is a bit tricky because we don't really store the lib root folder anywhere
+    // so we have to resolve it by finding the haxelib.json, starting from the lib's classpath and goes up
+    function resolve(lib:String) {
+      final resolved = scope.resolve(['-lib', lib]);
+      for(i in 0...resolved.length) {
+        switch resolved[i] {
+          case '-cp':
+            var path = resolved[i + 1];
+            if(path.contains('/$lib/')) {
+              do {
+                if(FileSystem.exists(Path.join([path, 'haxelib.json'])))
+                  return path.addTrailingSlash();
+              } while((path = Path.directory(path)) != '');
+              Sys.println('Unable to find haxelib.json for $lib at ${resolved[i + 1]}');
+              Sys.exit(500);
+            }
+          case _:
+        }
+      }
+      
+      Sys.println('Unable to resolve libpath for $lib');
+      Sys.exit(500);
+      throw 'unreachable';
+    }
+    
+    Sys.println(libs.map(resolve).join('\n'));
+  }
 
   public function run(args:Array<String>)
     scope.getLibCommand(args)
@@ -115,6 +144,8 @@ class HaxelibCli {
         run(args.slice(1));
       case 'path':
         path(args.slice(1));
+      case 'libpath':
+        libpath(args.slice(1));
       default:
         callHaxelib(args);
     }
