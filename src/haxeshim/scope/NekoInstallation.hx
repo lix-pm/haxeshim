@@ -26,6 +26,6 @@ class NekoInstallation {
 
   static public function get(root:String, platform:Platform, haxeVersion:String) {
     final nekoVersion = '2.4.0';// TODO: may have to depend on haxe version
-    return new NekoInstallation('$root/neko/$nekoVersion-$platform');
+    return new NekoInstallation('$root/neko/versions/$nekoVersion-$platform');
   }
 }
