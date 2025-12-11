@@ -223,9 +223,9 @@ class Scope {
     return
       switch path(version) {
         case Some(path):
-          new HaxeInstallation(path, version, haxelibRepo);
+          HaxeInstallation.at(path, version, haxelibRepo);
         case None:
-          new HaxeInstallation('$versionDir/$version', version, haxelibRepo);
+          HaxeInstallation.at('$versionDir/$version', version, haxelibRepo);
       }
 
   function resolveThroughHaxelib(libs:Array<Arg>)
