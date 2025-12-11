@@ -5,6 +5,7 @@ typedef Vars = haxe.DynamicAccess<String>;
 @:forward(keys)
 abstract Env(Vars) {
 
+  @:from static function ofObj(o:Dynamic<String>) return ofVars(o);
   @:from static function ofVars(vars:Vars) {
     var ret = new Vars();
     for (k in vars.keys())
