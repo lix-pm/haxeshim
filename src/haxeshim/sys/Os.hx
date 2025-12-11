@@ -1,6 +1,4 @@
-package haxeshim;
-
-using StringTools;
+package haxeshim.sys;
 
 class Os {
   

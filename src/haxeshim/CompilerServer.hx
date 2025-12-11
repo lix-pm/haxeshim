@@ -1,11 +1,10 @@
 package haxeshim;
 
+import haxeshim.sys.Exec;
 import js.Node.*;
 import js.node.Buffer;
 import js.node.child_process.ChildProcess;
 import js.node.net.Socket;
-import js.node.stream.Readable;
-import js.node.stream.Writable;
 
 using tink.CoreApi;
 

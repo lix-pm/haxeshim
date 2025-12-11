@@ -1,9 +1,10 @@
 package haxeshim.cli;
 
-import haxeshim.Exec.*;
+import haxeshim.sys.Exec;
+import haxeshim.sys.Exec.*;
+
 using StringTools;
 using sys.FileSystem;
-using tink.CoreApi;
 
 class HaxeCli {
 

@@ -1,4 +1,4 @@
-package haxeshim;
+package haxeshim.sys;
 
 import js.node.Buffer;
 import js.node.ChildProcess.*;

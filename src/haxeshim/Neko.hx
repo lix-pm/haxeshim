@@ -1,5 +1,7 @@
 package haxeshim;
 
+import haxeshim.sys.*;
+
 class Neko {
   static public var PATH(default, null):String = Os.slashes(Scope.DEFAULT_ROOT + '/neko');
   static var isset = false;  

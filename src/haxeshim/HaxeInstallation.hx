@@ -1,5 +1,7 @@
 package haxeshim;
 
+import haxeshim.sys.*;
+
 class HaxeInstallation {
   static var EXT = if (Os.IS_WINDOWS) '.exe' else '';  
   

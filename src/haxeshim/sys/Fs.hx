@@ -1,13 +1,10 @@
-package haxeshim;
+package haxeshim.sys;
 
-import haxe.ds.Option;
 import haxe.io.Bytes;
 
 using sys.io.File;
-using haxe.io.Path;
 using sys.FileSystem;
-using StringTools;
-using tink.CoreApi;
+using haxe.io.Path;
 
 private abstract Payload(Bytes) from Bytes to Bytes {
   @:from static function ofString(s:String):Payload

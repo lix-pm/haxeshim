@@ -1,11 +1,11 @@
 package haxeshim;
 
+import haxeshim.sys.*;
 import haxeshim.Args;
 import haxeshim.Errors;
+
 using sys.io.File;
 using sys.FileSystem;
-using StringTools;
-using tink.CoreApi;
 using haxe.io.Path;
 using haxe.Json;
 

@@ -1,9 +1,10 @@
 package haxeshim;
 
+#if macro
 import haxe.macro.*;
 
 using sys.io.File;
-using StringTools;
+#end
 
 class Build { 
   static macro function postprocess() {

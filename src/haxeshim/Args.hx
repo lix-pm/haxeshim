@@ -147,13 +147,6 @@ class Args {
       switch args.shift() {
         case null: flush(); break;
         case arg:
-          function next(step:Arg->Void)
-            switch args.shift() {
-              case null:
-                errors.fail('${arg.val} without argument', arg.pos);
-              case v:
-                step(v);
-            }
           switch arg.val {
             case '--next': flush();
             case '--each': each_params = acc; acc = [];

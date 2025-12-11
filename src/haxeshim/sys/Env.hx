@@ -1,4 +1,4 @@
-package haxeshim;
+package haxeshim.sys;
 
 typedef Vars = haxe.DynamicAccess<String>;
 
