@@ -10,6 +10,8 @@ class Os {
   
   static public var DELIMITER(default, null):String = if (IS_WINDOWS) ';' else ':';
 
+  static public var EXECUTABLE_EXTENSION(default, null):String = if (IS_WINDOWS) '.exe' else '';
+
   static public function slashes(path:String)
     return
       if (IS_WINDOWS) path.replace('/', '\\');

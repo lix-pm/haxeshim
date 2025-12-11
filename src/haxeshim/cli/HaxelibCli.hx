@@ -23,7 +23,7 @@ class HaxelibCli {
   var installation:HaxeInstallation;
 
   function callHaxelib(args:Array<String>)
-    exitWithCode(Exec.sync(installation.haxelib, Sys.getCwd(), args, installation.env()));
+    exitWithCode(Exec.sync(installation.haxelib, Sys.getCwd(), args, installation.env));
 
   public function new(scope) {
     this.scope = scope;

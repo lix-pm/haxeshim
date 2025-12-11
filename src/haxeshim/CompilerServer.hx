@@ -126,7 +126,7 @@ class CompilerServer {
         var hx = scope.haxeInstallation;
         child = js.node.ChildProcess.spawn(hx.compiler, this.args.concat(['--wait', 'stdio']), {
           cwd: scope.cwd,
-          env: Exec.mergeEnv(hx.env()),
+          env: Exec.mergeEnv(hx.env),
           stdio: 'pipe',
         });
 
@@ -272,7 +272,7 @@ class CompilerServer {
         return freePort.next(function (port):Waiting {
           var installation = scope.getInstallation(version);
 
-          var proc = Exec.async(installation.compiler, scope.cwd, this.args.concat(['--wait', Std.string(port)]), installation.env());
+          var proc = Exec.async(installation.compiler, scope.cwd, this.args.concat(['--wait', Std.string(port)]), installation.env);
 
           return {
             died: Future.irreversible(function (cb) {

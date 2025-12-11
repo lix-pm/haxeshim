@@ -220,17 +220,19 @@ class Scope {
       else None;
 
   public function getInstallation(version:String)
-    return
-      switch path(version) {
-        case Some(path):
-          HaxeInstallation.at(path, version, haxelibRepo);
-        case None:
-          HaxeInstallation.at('$versionDir/$version', version, haxelibRepo);
+    return HaxeInstallation.at({ 
+      root: haxeshimRoot, 
+      version: version, 
+      haxelibRepo: haxelibRepo, 
+      path: switch path(version) {
+        case Some(path): path;
+        case None: '$versionDir/$version';
       }
+    });
 
   function resolveThroughHaxelib(libs:Array<Arg>)
     return
-      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat([for (l in libs) l.val]), haxeInstallation.env()) {
+      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat([for (l in libs) l.val]), haxeInstallation.env) {
         case Success({ status: 0, stdout: stdout }):
           Args.fromMultilineString(stdout, 'haxelib path', getVar, true)
             .map(args -> {
@@ -296,7 +298,7 @@ class Scope {
           case [cmd]:
             return Exec.shell.bind([interpolate(cmd)].concat(
               args.map(if (Os.IS_WINDOWS) haxe.SysTools.quoteWinArg.bind(_, true) else haxe.SysTools.quoteUnixArg)
-            ).join(' '), Sys.getCwd(), haxeInstallation.env());
+            ).join(' '), Sys.getCwd(), haxeInstallation.env);
           default: new Error('more than one @run directive for library $lib');
         });
   }
