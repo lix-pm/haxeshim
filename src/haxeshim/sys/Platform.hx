@@ -55,12 +55,13 @@ enum abstract Platform(String) to String {
     if (b.length >= 0x40) {
       var peOffset = b.getInt32(0x3C);
 
-      inline function expect(byte) return b.get(peOffset++) == byte;
+      inline function next() return b.get(peOffset++);
+      inline function expect(byte) return next() == byte;
 
       if (expect('P'.code) && expect('E'.code) && expect(0) && expect(0)) {
 
         // Machine field at PE + 4, little endian
-        var machine = b.get(peOffset + 4) | (b.get(peOffset + 5) << 8);
+        var machine = next() | (next() << 8);
 
         return switch (machine) {
           case 0x014C: Win32;   // x86
