@@ -1,8 +1,8 @@
 package haxeshim.cli;
 
-using tink.CoreApi;
+import haxeshim.sys.*;
+
 using haxe.io.Path;
-using StringTools;
 using sys.FileSystem;
 
 class HaxelibCli {
@@ -25,7 +25,6 @@ class HaxelibCli {
     exitWithCode(Exec.sync(installation.haxelib, Sys.getCwd(), args, installation.env()));
 
   public function new(scope) {
-    Neko.setEnv();//TODO: this is an awkward place to put this
     this.scope = scope;
     this.installation = scope.haxeInstallation;
   }

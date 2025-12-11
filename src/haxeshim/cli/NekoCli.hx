@@ -1,10 +1,10 @@
 package haxeshim.cli;
 
+import haxeshim.sys.*;
+
 class NekoCli {
 
   static function main() {
-
-    Neko.setEnv();
 
     var binary =
       if (Os.IS_WINDOWS) 'neko.exe';

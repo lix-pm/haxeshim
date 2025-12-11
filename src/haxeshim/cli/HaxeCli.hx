@@ -27,12 +27,10 @@ class HaxeCli {
   }
 
   static public function run(args) {
-    Neko.setEnv();
     new HaxeCli(gracefully(Scope.seek.bind())).dispatch(args);
   }
 
   static function main() {
-    Neko.setEnv();
     withArgs(run);
   }
 
