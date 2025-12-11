@@ -5,12 +5,12 @@ import haxeshim.sys.*;
 class HaxeInstallation {
   static var EXT = if (Os.IS_WINDOWS) '.exe' else '';  
   
-  public var path(default, null):String;
-  public var stdLib(default, null):String;
-  public var compiler(default, null):String;
-  public var haxelib(default, null):String;
-  public var version(default, null):String;
-  public var haxelibRepo(default, null):String;
+  public final path:String;
+  public final stdLib:String;
+  public final compiler:String;
+  public final haxelib:String;
+  public final version:String;
+  public final haxelibRepo:String;
   
   public function new(path:String, version:String, haxelibRepo:String) {
     this.path = path;

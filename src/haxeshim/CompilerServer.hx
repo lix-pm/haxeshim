@@ -29,7 +29,7 @@ class CompilerServer {
   var lastVersion:String;
   var args:Array<String>;
 
-  var freePort:Promise<Int> = Future.async(function (cb) {
+  var freePort:Promise<Int> = Future.irreversible(function (cb) {
     var test = js.node.Net.createServer();
     test.listen(0, function () {
       var port = test.address().port;
@@ -37,7 +37,7 @@ class CompilerServer {
         cb(Success(port));
       });
     });
-  }, true);
+  });
 
   public function new(kind:ServerKind, scope, args) {
     this.args = args;
@@ -275,30 +275,30 @@ class CompilerServer {
           var proc = Exec.async(installation.compiler, scope.cwd, this.args.concat(['--wait', Std.string(port)]), installation.env());
 
           return {
-            died: Future.async(function (cb) {
+            died: Future.irreversible(function (cb) {
               proc.on("exit", cb.bind(Noise));
               proc.on("error", cb.bind(Noise));
               proc.on("disconnect", cb.bind(Noise));
             }),
             version: version,
-            socket: function () return Future.async(function (cb) {
+            socket: () -> Promise.irreversible((resolve, reject) -> {
               var max = 10;
               function connect(attempt:Int) {
                 var cnx = js.node.Net.createConnection(port, '127.0.0.1');
                 cnx
                   .on('error', function (e)
                     if (attempt >= max)
-                      cb(Failure(new Error('Failed to connect to 127.0.0.1:$port after $max attempts because $e')))
+                      reject(new Error('Failed to connect to 127.0.0.1:$port after $max attempts because $e'));
                     else
                       haxe.Timer.delay(connect.bind(attempt+1), 100)
                   )
-                  .on('connect', function () cb(Success(cnx)));
+                  .on('connect', function () resolve(cnx));
               }
               connect(1);
             }),
             kill: function () {
               proc.kill();
-              return Future.async(function (cb) haxe.Timer.delay(cb.bind(Noise), 500));
+              return Future.delay(500, Noise);
             }
           }
         });
