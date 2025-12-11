@@ -2,13 +2,13 @@ package haxeshim.cli;
 
 import haxeshim.sys.Exec;
 import haxeshim.sys.Exec.*;
+import haxeshim.scope.Scope;
 
-using StringTools;
 using sys.FileSystem;
 
 class HaxeCli {
 
-  var scope:Scope;
+  final scope:Scope;
 
   public function new(scope) {
     this.scope = scope;

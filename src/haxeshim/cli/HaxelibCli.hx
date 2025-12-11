@@ -1,5 +1,6 @@
 package haxeshim.cli;
 
+import haxeshim.scope.*;
 import haxeshim.sys.*;
 
 using haxe.io.Path;

@@ -1,5 +1,6 @@
 package haxeshim;
 
+import haxeshim.scope.Scope;
 import haxeshim.sys.Exec;
 import js.Node.*;
 import js.node.Buffer;

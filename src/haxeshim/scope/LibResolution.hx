@@ -1,6 +1,4 @@
-package haxeshim;
-
-using tink.CoreApi;
+package haxeshim.scope;
 
 enum abstract LibResolution(String) to String {
   /**
