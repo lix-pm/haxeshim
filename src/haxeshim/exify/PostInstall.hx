@@ -1,4 +1,4 @@
-package haxeshim;
+package haxeshim.exify;
 
 import haxe.Resource;
 import js.node.ChildProcess;

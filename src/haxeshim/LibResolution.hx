@@ -2,7 +2,7 @@ package haxeshim;
 
 using tink.CoreApi;
 
-@:enum abstract LibResolution(String) to String {
+enum abstract LibResolution(String) to String {
   /**
     Any parameters that are passed to haxeshim are parsed, including hxmls and the `-lib` parameters are "intercepted".
     To resolve these, we look for a `haxe_libraries/<libName>.hxml` and parse the parameters therein.

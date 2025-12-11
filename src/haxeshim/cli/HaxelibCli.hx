@@ -1,4 +1,4 @@
-package haxeshim;
+package haxeshim.cli;
 
 using tink.CoreApi;
 using haxe.io.Path;

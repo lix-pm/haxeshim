@@ -1,4 +1,4 @@
-package haxeshim;
+package haxeshim.cli;
 
 class NekoCli {
 
