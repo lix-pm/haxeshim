@@ -43,7 +43,7 @@ class HaxelibCli {
           args.push(lib.split(':')[0]);
       }
 
-    var resolved = Exec.gracefully(scope.resolve.bind(args)),
+    var resolved = Exec.gracefully(() -> scope.resolve(args)),
         i = 0;
 
     while(i < resolved.length) {

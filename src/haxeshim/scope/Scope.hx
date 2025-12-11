@@ -232,7 +232,8 @@ class Scope {
 
   function resolveThroughHaxelib(libs:Array<Arg>)
     return
-      switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat([for (l in libs) l.val]), haxeInstallation.env) {
+      if (libs.length == 0) Success([]);
+      else switch Exec.eval(haxeInstallation.haxelib, cwd, ['path'].concat([for (l in libs) l.val]), haxeInstallation.env) {
         case Success({ status: 0, stdout: stdout }):
           Args.fromMultilineString(stdout, 'haxelib path', getVar, true)
             .map(args -> {
