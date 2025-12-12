@@ -27,7 +27,7 @@ class HaxeCli {
   }
 
   static public function run(args) {
-    new HaxeCli(gracefully(Scope.seek.bind())).dispatch(args);
+    new HaxeCli(gracefully(() -> Scope.seek())).dispatch(args);
   }
 
   static function main() {
