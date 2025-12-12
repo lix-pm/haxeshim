@@ -40,6 +40,7 @@ class HaxeInstallation {
 
     final platform:Platform = cast
       if (info.exists()) info.getContent();
+      else if (!path.exists()) Os.platform;
       else {
         final file = '$path/haxe$EXT'.read();
         final b = file.read(1024);

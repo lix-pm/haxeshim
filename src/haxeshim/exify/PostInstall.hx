@@ -1,6 +1,5 @@
 package haxeshim.exify;
 
-import haxe.Resource;
 import js.node.ChildProcess;
 import js.Node.*;
 import haxe.io.*;
