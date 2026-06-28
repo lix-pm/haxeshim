@@ -411,7 +411,7 @@ class Scope {
         errors.fail(msg, arg.pos);
 
       switch arg.val {
-        case '-lib', '--lib', '-L':
+        case '-lib' | '--lib' | '-L' | '--library':
           switch args.shift() {
             case null:
               fail('-lib requires argument');
