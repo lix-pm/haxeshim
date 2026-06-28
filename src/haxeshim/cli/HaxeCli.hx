@@ -50,18 +50,13 @@ class HaxeCli {
     function getScope()
       return gracefully(Scope.seek.bind({ cwd: null }));
 
+    var serverMode = CompilerServer.extractMode(args);
+    if (serverMode != null) {
+      new CompilerServer(serverMode.kind, getScope(), serverMode.args);
+      return;
+    }
+
     switch args {
-      case _.indexOf('--wait') => wait if (wait >=0 && wait < args.length - 1):
-
-        new CompilerServer(
-          switch args.splice(wait, 2).pop() {
-            case 'stdio': Stdio;
-            case Std.parseInt(_) => port: Port(port);
-          },
-          getScope(),
-          args
-        );
-
       case _.slice(0, 2) => ['--run', haxeShimExtension] if (haxeShimExtension.indexOf('-') != -1 && haxeShimExtension.toLowerCase() == haxeShimExtension):
 
         var args = args.slice(2);
