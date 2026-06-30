@@ -439,7 +439,7 @@ class Scope {
           }
         case hxml if (hxml.endsWith('.hxml')):
           args = Args.readHxml(resolvePath(hxml), fs, getVar, errors, arg.pos).concat(args);
-        case forbidden = '--next' | '--each' | '--connect' | '--wait' | '--cwd' | '-C' | '--run':
+        case forbidden = '--next' | '--each' | '--connect' | '--wait' | '--server-listen' | '--server-connect' | '--cwd' | '-C' | '--run':
           fail('$forbidden not allowed here');
           break;
         default:
