@@ -1,3 +1,5 @@
+import { cyan, dim } from './colors.mjs';
+
 let verbose = false;
 
 export function setVerbose(enabled) {
@@ -22,8 +24,8 @@ export function formatFrame(payload) {
  */
 export function log(caseName, message, detail) {
   if (!verbose) return;
-  console.log(`  [${caseName}] ${message}`);
+  console.log(`  ${cyan(`[${caseName}]`)} ${message}`);
   if (detail !== undefined && detail !== '') {
-    console.log(detail);
+    console.log(dim(detail));
   }
 }

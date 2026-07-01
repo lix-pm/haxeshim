@@ -45,4 +45,6 @@ jobs:
         run: npm run build
 
       - name: E2E tests
+        env:
+          FORCE_COLOR: 1
         run: node tests/e2e/run.mjs --haxe-version ${{ matrix.haxe-version }} --verbose

@@ -12,6 +12,7 @@ import {
   sendWaitCompileRequest,
   sendConnectCompileRequest,
 } from './lib/compile-server.mjs';
+import { bold, boldGreen, boldRed, green, setColorEnabled } from './lib/colors.mjs';
 import { log, setVerbose } from './lib/log.mjs';
 import { runShim } from './lib/shim.mjs';
 import { parseLines, assertExpected, assertResolveArgsCheck, exitCodesMatch } from './lib/assert.mjs';
@@ -22,12 +23,13 @@ const e2eRoot = dirname(fileURLToPath(import.meta.url));
 const fixturesRoot = join(e2eRoot, 'fixtures');
 
 /**
- * @returns {{ haxeVersion?: string, verbose: boolean }}
+ * @returns {{ haxeVersion?: string, verbose: boolean, noColor: boolean }}
  */
 function parseArgs() {
   const argv = process.argv.slice(2);
   let haxeVersion;
   let verbose = false;
+  let noColor = false;
 
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--haxe-version') {
@@ -41,10 +43,14 @@ function parseArgs() {
       verbose = true;
       continue;
     }
+    if (argv[i] === '--no-color') {
+      noColor = true;
+      continue;
+    }
     throw new Error(`Unknown argument: ${argv[i]}`);
   }
 
-  return { haxeVersion, verbose };
+  return { haxeVersion, verbose, noColor };
 }
 
 /**
@@ -296,10 +302,13 @@ function countServerRuns(serverCases) {
 }
 
 async function main() {
-  const { haxeVersion, verbose } = parseArgs();
+  const { haxeVersion, verbose, noColor } = parseArgs();
+  if (noColor) {
+    setColorEnabled(false);
+  }
   setVerbose(verbose);
 
-  console.log('Bootstrapping E2E environment...');
+  console.log(bold('Bootstrapping E2E environment...'));
   bootstrap();
   if (haxeVersion) {
     console.log(`Using Haxe version from --haxe-version: ${haxeVersion}`);
@@ -314,34 +323,34 @@ async function main() {
   const failures = [];
   const runOptions = { haxeVersion };
 
-  console.log(`Running ${resolveCases.length} resolve-args cases...`);
+  console.log(bold(`Running ${resolveCases.length} resolve-args cases...`));
   for (const testCase of resolveCases) {
     try {
       await ensureFixturePrepared(testCase, runOptions);
       await runResolveArgsCase(testCase);
-      console.log(`  ok  ${testCase.name}`);
+      console.log(`  ${green('ok')}  ${testCase.name}`);
     } catch (e) {
-      console.error(`  FAIL ${testCase.name}`);
+      console.error(`  ${boldRed('FAIL')} ${testCase.name}`);
       console.error(e instanceof Error ? e.message : e);
       failures.push(testCase.name);
     }
   }
 
-  console.log(`Running ${compileCases.length} compile cases...`);
+  console.log(bold(`Running ${compileCases.length} compile cases...`));
   for (const testCase of compileCases) {
     try {
       await ensureFixturePrepared(testCase, runOptions);
       await runCompileCase(testCase);
-      console.log(`  ok  ${testCase.name}`);
+      console.log(`  ${green('ok')}  ${testCase.name}`);
     } catch (e) {
-      console.error(`  FAIL ${testCase.name}`);
+      console.error(`  ${boldRed('FAIL')} ${testCase.name}`);
       console.error(e instanceof Error ? e.message : e);
       failures.push(testCase.name);
     }
   }
 
   const serverRunCount = countServerRuns(serverCases);
-  console.log(`Running ${serverRunCount} server cases...`);
+  console.log(bold(`Running ${serverRunCount} server cases...`));
   for (const testCase of serverCases) {
     const modes = testCase.definition.modes ?? ['wait'];
     for (const mode of modes) {
@@ -349,9 +358,9 @@ async function main() {
       try {
         await ensureFixturePrepared(testCase, runOptions);
         await runServerMode(modeName, testCase.projectDir, testCase.definition, mode);
-        console.log(`  ok  ${modeName}`);
+        console.log(`  ${green('ok')}  ${modeName}`);
       } catch (e) {
-        console.error(`  FAIL ${modeName}`);
+        console.error(`  ${boldRed('FAIL')} ${modeName}`);
         console.error(e instanceof Error ? e.message : e);
         failures.push(modeName);
       }
@@ -359,12 +368,12 @@ async function main() {
   }
 
   if (failures.length > 0) {
-    console.error(`\n${failures.length} case(s) failed.`);
+    console.error(boldRed(`\n${failures.length} case(s) failed.`));
     process.exit(1);
   }
 
   const totalCases = resolveCases.length + compileCases.length + serverRunCount;
-  console.log(`\nAll ${totalCases} E2E cases passed.`);
+  console.log(boldGreen(`\nAll ${totalCases} E2E cases passed.`));
 }
 
 main().catch((e) => {
