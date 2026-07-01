@@ -1,0 +1,7 @@
+{
+  "modes": ["wait", "connect"],
+  "args": ["-cp", "src", "-main", "Main", "-js", "out.js", "-v"],
+  "exitCode": 0,
+  "output": "out.js",
+  "outputContains": "ok"
+}

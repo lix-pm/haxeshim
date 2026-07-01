@@ -45,4 +45,4 @@ jobs:
         run: npm run build
 
       - name: E2E tests
-        run: node tests/e2e/run.mjs --haxe-version ${{ matrix.haxe-version }}
+        run: node tests/e2e/run.mjs --haxe-version ${{ matrix.haxe-version }} --verbose
