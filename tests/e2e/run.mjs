@@ -292,6 +292,39 @@ async function assertServerOutput(name, projectDir, definition, outputPath, resp
 }
 
 /**
+ * @param {{ name: string, projectDir: string, definition: any }} testCase
+ * @returns {Array<{ name: string, projectDir: string, definition: any }>}
+ */
+function expandResolveArgsRuns(testCase) {
+  const { name, projectDir, definition } = testCase;
+  const variants = definition.variants;
+
+  if (!variants) {
+    return [testCase];
+  }
+
+  return variants.map((variant, index) => {
+    const variantName = variant.name ?? `#${index}`;
+    const { variants: _variants, args: _args, ...shared } = definition;
+    return {
+      name: `${name} (${variantName})`,
+      projectDir,
+      definition: { ...shared, args: variant.args },
+    };
+  });
+}
+
+/**
+ * @param {any[]} resolveCases
+ */
+function countResolveArgsRuns(resolveCases) {
+  return resolveCases.reduce((total, testCase) => {
+    const variants = testCase.definition.variants;
+    return total + (variants ? variants.length : 1);
+  }, 0);
+}
+
+/**
  * @param {any[]} serverCases
  */
 function countServerRuns(serverCases) {
@@ -323,16 +356,19 @@ async function main() {
   const failures = [];
   const runOptions = { haxeVersion };
 
-  console.log(bold(`Running ${resolveCases.length} resolve-args cases...`));
+  const resolveRunCount = countResolveArgsRuns(resolveCases);
+  console.log(bold(`Running ${resolveRunCount} resolve-args cases...`));
   for (const testCase of resolveCases) {
-    try {
-      await ensureFixturePrepared(testCase, runOptions);
-      await runResolveArgsCase(testCase);
-      console.log(`  ${green('ok')}  ${testCase.name}`);
-    } catch (e) {
-      console.error(`  ${boldRed('FAIL')} ${testCase.name}`);
-      console.error(e instanceof Error ? e.message : e);
-      failures.push(testCase.name);
+    for (const run of expandResolveArgsRuns(testCase)) {
+      try {
+        await ensureFixturePrepared(run, runOptions);
+        await runResolveArgsCase(run);
+        console.log(`  ${green('ok')}  ${run.name}`);
+      } catch (e) {
+        console.error(`  ${boldRed('FAIL')} ${run.name}`);
+        console.error(e instanceof Error ? e.message : e);
+        failures.push(run.name);
+      }
     }
   }
 
@@ -372,7 +408,7 @@ async function main() {
     process.exit(1);
   }
 
-  const totalCases = resolveCases.length + compileCases.length + serverRunCount;
+  const totalCases = resolveRunCount + compileCases.length + serverRunCount;
   console.log(boldGreen(`\nAll ${totalCases} E2E cases passed.`));
 }
 

@@ -1,5 +1,9 @@
 {
-  "args": ["-lib", "nonexistent"],
+  "variants": [
+    { "name": "-lib", "args": ["-lib", "nonexistent"] },
+    { "name": "-L", "args": ["-L", "nonexistent"] },
+    { "name": "--library", "args": ["--library", "nonexistent"] }
+  ],
   "exitCode": 500,
   "expectedError": "nonexistent is missing"
 }
