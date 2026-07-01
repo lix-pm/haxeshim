@@ -1,33 +1,9 @@
 {
-  "name": "haxeshim",
-  "version": "0.12.4",
-  "bin": {
-    "haxe": "bin/haxeshim.js",
-    "haxelib": "bin/haxelibshim.js",
-    "neko": "bin/nekoshim.js"
-  },
-  "description": "Haxe shim to deal with cooexisting versions.",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lix-pm/haxeshim.git"
-  },
+  "private": true,
+  "description": "Haxeshim is distributed through the lix package, not as a standalone npm package. This package.json exists only to provide npm scripts for local development.",
   "scripts": {
-    "prepublishOnly": "haxe all.hxml",
-    "postinstall": "node bin/postinstall.js",
+    "build": "haxe all.hxml",
     "test": "haxe tests.hxml && node tests-out/RunTests.js",
     "test:e2e": "haxe haxeshim.hxml && node tests/e2e/run.mjs"
-  },
-  "keywords": [
-    "haxe"
-  ],
-  "files": [
-    "bin"
-  ],
-  "author": "back2dos",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/lix-pm/haxeshim/issues"
-  },
-  "homepage": "https://github.com/lix-pm/haxeshim#readme",
-  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
+  }
 }

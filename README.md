@@ -14,7 +14,7 @@ Haxe is great. Greater than unicorns. Unfortunately decent solutions for handlin
 
 At the bottom line this project merely decouples a number of things that are currently just mushed together in the standard Haxe distribution. The decomposition itself would be highly advisable to apply there too, but attempts to argue for that have shown no effect, so an independent effort would seem to be the only way forward.
 
-The project is currently based on nodejs for execution and distributed through NPM, due to their ubiquity. The command line interfaces aside, much of the code is written against Haxe's sys APIs and should thus be portable to other targets, as it should be, because currently it adds quite an overhead to compilation time (~100ms). Some of it can be optimized away, but given that invoking nodejs alone comes with quite an overhead, a truly optimized solution will have to rely on a different runtime.
+The project is currently based on nodejs for execution and distributed through [lix](https://github.com/lix-pm/lix), which bundles haxeshim. The command line interfaces aside, much of the code is written against Haxe's sys APIs and should thus be portable to other targets, as it should be, because currently it adds quite an overhead to compilation time (~100ms). Some of it can be optimized away, but given that invoking nodejs alone comes with quite an overhead, a truly optimized solution will have to rely on a different runtime.
 
 ## Haxe version management
 

@@ -39,12 +39,12 @@ jobs:
         run: lix download
 
       - name: Run unit tests
-        run: haxe tests.hxml && node tests-out/RunTests.js
+        run: npm run test
 
       - name: Build Shims
-        run: haxe all.hxml
+        run: npm run build
 
       - name: E2E tests
-        run: node tests/e2e/run.mjs
+        run: npm run test:e2e
         env:
           HAXE_VERSION: ${{ matrix.haxe-version }}
