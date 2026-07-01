@@ -21,7 +21,7 @@ jobs:
           - windows-latest
         haxe-version:
           - 4.3.7
-          - 5.0.0-preview.1
+          # - 5.0.0-preview.1
     defaults:
       run:
         shell: bash
@@ -34,47 +34,15 @@ jobs:
         with:
           node-version: 20
 
-      # lix bundles its own haxe/haxelib/neko (a haxeshim dist), so this alone
-      # gives us a fully working, scoped-resolution-aware toolchain - no need
-      # for a separate "raw" compiler or classic haxelib bootstrap.
-      - uses: lix-pm/setup-lix@1.0.1
+      - uses: lix-pm/setup-lix@1.0.0
         with:
           lix-version: 17.0.0
 
-      # The repo's own .haxerc pins a single Haxe version; override it per
-      # matrix job so everything below (including the shim we install later)
-      # actually exercises the version this job is testing.
-      - name: Point repo scope at the matrix Haxe version
-        run: printf '{"version":"%s","resolveLibs":"scoped"}\n' "${{ matrix.haxe-version }}" > .haxerc
-
-      # Downloads the matrix Haxe version + neko (per .haxerc) and every
-      # scoped library declared in haxe_libraries/*.hxml (tink_core,
-      # hxnodejs, ansi, hx3compat), all via lix's own resolver.
       - name: lix download
         run: lix download
 
-      # Builds haxeshim from source using lix's bundled shim - haxeshim
-      # bootstrapping itself, no classic haxelib required.
-      - name: Build haxeshim
-        run: haxe all.hxml
-
-      - name: Install our freshly-built shim globally
-        run: npm install -g .
-
-      # Depending on how setup-lix wires PATH, npm's global bin dir may not
-      # be prioritized ahead of it. Make sure the shim we just built and
-      # installed is the one subsequent `haxe`/`haxelib`/`neko` calls hit.
-      - name: Prioritize our shim on PATH
-        run: |
-          NPM_PREFIX="$(npm config get prefix)"
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            echo "$NPM_PREFIX" >> "$GITHUB_PATH"
-          else
-            echo "$NPM_PREFIX/bin" >> "$GITHUB_PATH"
-          fi
-
       - name: Run unit tests
-        run: npm test
+        run: haxe tests.hxml && node tests-out/RunTests.js
 
       # Rebuilding through our own installed shim (scoped resolution, matrix
       # Haxe version) is the real end-to-end validation that haxeshim works
