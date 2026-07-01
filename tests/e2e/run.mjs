@@ -2,12 +2,33 @@ import { readdir, readFile, unlink, access } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
-import { bootstrap } from './lib/bootstrap.mjs';
+import { bootstrap, prepareFixture } from './lib/bootstrap.mjs';
 import { runShim } from './lib/shim.mjs';
 import { parseLines, assertExpected, assertResolveArgsCheck, exitCodesMatch } from './lib/assert.mjs';
 
 const e2eRoot = dirname(fileURLToPath(import.meta.url));
 const fixturesRoot = join(e2eRoot, 'fixtures');
+
+/**
+ * @returns {{ haxeVersion?: string }}
+ */
+function parseArgs() {
+  const argv = process.argv.slice(2);
+  let haxeVersion;
+
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--haxe-version') {
+      haxeVersion = argv[++i];
+      if (!haxeVersion) {
+        throw new Error('--haxe-version requires a version argument');
+      }
+      continue;
+    }
+    throw new Error(`Unknown argument: ${argv[i]}`);
+  }
+
+  return { haxeVersion };
+}
 
 /**
  * @param {string} category
@@ -34,6 +55,21 @@ async function discoverCases(category) {
   }
 
   return cases.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** @type {Set<string>} */
+const preparedFixtures = new Set();
+
+/**
+ * @param {{ name: string, projectDir: string, definition: any }} testCase
+ * @param {{ haxeVersion?: string }} options
+ */
+async function ensureFixturePrepared(testCase, { haxeVersion }) {
+  const { projectDir } = testCase;
+  if (preparedFixtures.has(projectDir)) return;
+
+  prepareFixture(projectDir, { haxeVersion });
+  preparedFixtures.add(projectDir);
 }
 
 /**
@@ -118,16 +154,23 @@ async function runCompileCase(testCase) {
 }
 
 async function main() {
+  const { haxeVersion } = parseArgs();
+
   console.log('Bootstrapping E2E environment...');
   bootstrap();
+  if (haxeVersion) {
+    console.log(`Using Haxe version from --haxe-version: ${haxeVersion}`);
+  }
 
   const resolveCases = await discoverCases('resolve-args');
   const compileCases = await discoverCases('compile');
   const failures = [];
+  const runOptions = { haxeVersion };
 
   console.log(`Running ${resolveCases.length} resolve-args cases...`);
   for (const testCase of resolveCases) {
     try {
+      await ensureFixturePrepared(testCase, runOptions);
       await runResolveArgsCase(testCase);
       console.log(`  ok  ${testCase.name}`);
     } catch (e) {
@@ -140,6 +183,7 @@ async function main() {
   console.log(`Running ${compileCases.length} compile cases...`);
   for (const testCase of compileCases) {
     try {
+      await ensureFixturePrepared(testCase, runOptions);
       await runCompileCase(testCase);
       console.log(`  ok  ${testCase.name}`);
     } catch (e) {

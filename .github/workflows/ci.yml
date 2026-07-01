@@ -21,7 +21,7 @@ jobs:
           - windows-latest
         haxe-version:
           - 4.3.7
-          # - 5.0.0-preview.1
+          - 5.0.0-preview.1
     defaults:
       run:
         shell: bash
@@ -45,6 +45,4 @@ jobs:
         run: npm run build
 
       - name: E2E tests
-        run: npm run test:e2e
-        env:
-          HAXE_VERSION: ${{ matrix.haxe-version }}
+        run: node tests/e2e/run.mjs --haxe-version ${{ matrix.haxe-version }}

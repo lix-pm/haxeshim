@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../..');
+const shell = process.platform === 'win32';
 
 export function getRepoRoot() {
   return repoRoot;
@@ -11,10 +12,6 @@ export function getRepoRoot() {
 
 export function getShimPath() {
   return join(repoRoot, 'bin/haxeshim.js');
-}
-
-export function getHaxeVersion() {
-  return process.env.HAXE_VERSION || '4.3.7';
 }
 
 export function ensureShimBuilt() {
@@ -26,21 +23,38 @@ export function ensureShimBuilt() {
   }
 }
 
-export function installHaxe(version = getHaxeVersion()) {
-  const result = spawnSync('lix', ['install', 'haxe', version], {
+/**
+ * @param {string[]} args
+ * @param {string} cwd
+ */
+function runLix(args, cwd) {
+  const label = `lix ${args.join(' ')}`;
+  const result = spawnSync('lix', args, {
+    cwd,
     stdio: 'inherit',
-    shell: process.platform === 'win32',
+    shell,
   });
 
   if (result.error) {
-    throw new Error(`Failed to run lix install haxe ${version}: ${result.error.message}`);
+    throw new Error(`Failed to run ${label} in ${cwd}: ${result.error.message}`);
   }
   if (result.status !== 0) {
-    throw new Error(`lix install haxe ${version} exited with code ${result.status}`);
+    throw new Error(`${label} in ${cwd} exited with code ${result.status}`);
   }
+}
+
+/**
+ * @param {string} projectDir
+ * @param {{ haxeVersion?: string }} options
+ */
+export function prepareFixture(projectDir, { haxeVersion } = {}) {
+  if (haxeVersion) {
+    runLix(['install', 'haxe', haxeVersion], projectDir);
+    runLix(['use', 'haxe', haxeVersion], projectDir);
+  }
+  runLix(['download'], projectDir);
 }
 
 export function bootstrap() {
   ensureShimBuilt();
-  installHaxe();
 }
