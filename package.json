@@ -13,7 +13,8 @@
   },
   "scripts": {
     "prepublishOnly": "haxe all.hxml",
-    "postinstall": "node bin/postinstall.js"
+    "postinstall": "node bin/postinstall.js",
+    "test": "haxe tests.hxml && node tests-out/RunTests.js"
   },
   "keywords": [
     "haxe"
@@ -26,5 +27,6 @@
   "bugs": {
     "url": "https://github.com/lix-pm/haxeshim/issues"
   },
-  "homepage": "https://github.com/lix-pm/haxeshim#readme"
+  "homepage": "https://github.com/lix-pm/haxeshim#readme",
+  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
 }

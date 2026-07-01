@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: haxe ${{ matrix.haxe-version }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        haxe-version: ['4.3.4', '5.0.0-preview.1']
+    defaults:
+      run:
+        shell: bash
+    env:
+      # kept outside the checkout so it never collides with the repo's own scoped haxe_libraries/.haxerc
+      HAXESHIM_ROOT: ${{ github.workspace }}/../haxeshim-ci-root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Provides a real, working haxe/haxelib/neko toolchain on PATH that we
+      # use both to bootstrap-build haxeshim itself and to seed HAXESHIM_ROOT.
+      - name: Setup Haxe ${{ matrix.haxe-version }}
+        uses: krdlab/setup-haxe@v2
+        with:
+          haxe-version: ${{ matrix.haxe-version }}
+
+      # haxeshim expects a specific `versions/<version>` and
+      # `neko/versions/<neko-version>-<platform>` layout under its root
+      # (see src/haxeshim/scope/HaxeInstallation.hx and NekoInstallation.hx).
+      # We derive the platform string the same way haxeshim's own Os.hx does
+      # for the nodejs target, so it matches whatever HaxeInstallation.at()
+      # will later auto-detect from the copied `haxe` binary.
+      - name: Populate haxeshim root from the installed toolchain
+        run: |
+          set -euo pipefail
+
+          HAXE_DIR="$(dirname "$(command -v haxe)")"
+          NEKO_DIR="$(dirname "$(command -v neko)")"
+
+          mkdir -p "$HAXESHIM_ROOT/versions/${{ matrix.haxe-version }}"
+          cp -a "$HAXE_DIR"/. "$HAXESHIM_ROOT/versions/${{ matrix.haxe-version }}/"
+
+          PLATFORM="$(node -e '
+            const map = {
+              "linux-x64": "linux64", "linux-ia32": "linux32",
+              "linux-arm": "linux-arm", "linux-arm64": "linux-arm64",
+              "win32-x64": "win64", "win32-ia32": "win32",
+              "darwin-x64": "mac64", "darwin-arm64": "mac-arm"
+            };
+            console.log(map[process.platform + "-" + process.arch] || "unknown");
+          ')"
+
+          mkdir -p "$HAXESHIM_ROOT/neko/versions/2.4.0-$PLATFORM"
+          cp -a "$NEKO_DIR"/. "$HAXESHIM_ROOT/neko/versions/2.4.0-$PLATFORM/"
+
+      # The repo's own .haxerc pins a single Haxe version; override it per
+      # matrix job so the shim (once installed below) actually exercises the
+      # version we just set up, instead of always resolving the committed one.
+      - name: Point repo scope at the matrix Haxe version
+        run: printf '{"version":"%s","resolveLibs":"scoped"}\n' "${{ matrix.haxe-version }}" > .haxerc
+
+      # haxeshim's own source (common.hxml) depends on -lib ansi/hxnodejs/tink_core.
+      # Bootstrapping happens with the direct compiler, so classic haxelib has to
+      # resolve these (haxeshim's scoped resolution isn't available until the
+      # shim itself is built and installed a few steps below).
+      - name: Install classic haxelib dependencies for the bootstrap build
+        run: |
+          haxelib install hxnodejs --always
+          haxelib install ansi --always
+          haxelib install tink_core --always
+
+      - name: Bootstrap build (direct compiler)
+        run: haxe all.hxml
+
+      - name: Install haxeshim shims globally
+        run: npm install -g .
+
+      # npm's global bin dir was added to PATH before setup-haxe's, so without
+      # this the plain `haxe`/`haxelib`/`neko` commands below would still
+      # resolve to the raw toolchain instead of the shims we just installed.
+      - name: Prioritize haxeshim shims on PATH
+        run: |
+          NPM_PREFIX="$(npm config get prefix)"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo "$NPM_PREFIX" >> "$GITHUB_PATH"
+          else
+            echo "$NPM_PREFIX/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: Install lix
+        run: npm install -g lix
+
+      # Downloads the exact pinned versions declared in haxe_libraries/*.hxml
+      # (tink_core, hxnodejs, ansi, hx3compat) via each lib's `@install:` directive.
+      - name: Install scoped libraries via the shim
+        run: haxe --run install-libs
+
+      - name: Run unit tests
+        run: npm test
+
+      # Rebuilding through the shim (scoped resolution, matrix Haxe version)
+      # is the real end-to-end validation that haxeshim works on itself.
+      - name: Smoke test - rebuild via the shim itself
+        run: haxe all.hxml
