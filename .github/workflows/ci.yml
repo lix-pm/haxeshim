@@ -32,9 +32,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
 
-      - uses: lix-pm/setup-lix@1.0.0
-        with:
-          lix-version: 17.0.0
+      - name: Install lix
+        run: npm install -g lix@17.0.0
 
       - name: lix download
         run: lix download
