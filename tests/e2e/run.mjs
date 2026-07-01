@@ -187,6 +187,20 @@ async function runCompileCase(testCase) {
  * @param {string} mode
  */
 async function runServerMode(name, projectDir, definition, mode) {
+  if (definition.resolveArgsCheck) {
+    const resolved = await runShim(projectDir, ['--run', 'resolve-args', ...definition.args]);
+    log(name, 'resolve-args cross-check stdout:', resolved.stdout);
+    log(name, 'resolve-args cross-check stderr:', resolved.stderr);
+    if (resolved.exitCode !== 0) {
+      throw new Error(
+        `${name} resolve-args cross-check: expected exit 0, got ${resolved.exitCode}\n` +
+          `  stdout: ${resolved.stdout}\n` +
+          `  stderr: ${resolved.stderr}`
+      );
+    }
+    assertResolveArgsCheck(resolved.stdout, projectDir, definition.resolveArgsCheck);
+  }
+
   const outputPath = join(projectDir, definition.output);
   await unlink(outputPath).catch(() => {});
 
@@ -202,7 +216,7 @@ async function runServerMode(name, projectDir, definition, mode) {
         caseName: name,
       });
 
-      if (response.length === 0) {
+      if (response.length === 0 && !definition.output) {
         throw new Error(
           `${name}: expected non-empty TCP response\n` + `  stderr: ${server.getStderr()}`
         );
@@ -224,7 +238,7 @@ async function runServerMode(name, projectDir, definition, mode) {
 
       const { response } = await sendConnectCompileRequest(mock, definition.args, { caseName: name });
 
-      if (response.length === 0) {
+      if (response.length === 0 && !definition.output) {
         throw new Error(
           `${name}: expected non-empty framed response\n` + `  stderr: ${client.getStderr()}`
         );

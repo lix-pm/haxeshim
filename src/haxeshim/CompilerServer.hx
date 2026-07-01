@@ -480,8 +480,13 @@ class CompilerServer {
             connect(version).handle(function (o) switch o {
               case Success(compiler):
 
-                compiler.write(args.join('\n') + String.fromCharCode(0));
-                compiler.pipe(cnx, { end: true });
+                switch scope.resolve.bind(args).catchExceptions() {
+                  case Failure(e):
+                    cnx.end(e.message + '\n' + String.fromCharCode(2) + '\n', 'utf8');
+                  case Success(resolved):
+                    compiler.write(resolved.join('\n') + String.fromCharCode(0));
+                    compiler.pipe(cnx, { end: true });
+                }
 
               case Failure(e):
 
