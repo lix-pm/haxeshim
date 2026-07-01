@@ -1,0 +1,5 @@
+{
+  "args": ["-lib", "nonexistent"],
+  "exitCode": 500,
+  "expectedError": "nonexistent is missing"
+}

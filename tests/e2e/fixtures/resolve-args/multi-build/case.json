@@ -1,0 +1,5 @@
+{
+  "args": ["-cp", "a", "--next", "-cp", "b"],
+  "expected": ["-cp", "a", "--next", "-cp", "b"],
+  "exitCode": 0
+}

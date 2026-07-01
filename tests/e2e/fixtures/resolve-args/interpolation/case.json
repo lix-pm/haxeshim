@@ -1,0 +1,5 @@
+{
+  "args": ["-cp", "${CWD}/src"],
+  "expected": ["-cp", { "set": ["<fixture>/src"] }],
+  "exitCode": 0
+}

@@ -1,0 +1,5 @@
+{
+  "args": ["-lib", "minilib"],
+  "expected": ["-cp", { "set": ["lib"] }],
+  "exitCode": 0
+}

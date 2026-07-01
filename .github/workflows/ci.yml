@@ -41,8 +41,10 @@ jobs:
       - name: Run unit tests
         run: haxe tests.hxml && node tests-out/RunTests.js
 
-      # Rebuilding through our own installed shim (scoped resolution, matrix
-      # Haxe version) is the real end-to-end validation that haxeshim works
-      # on itself.
-      - name: Smoke test - rebuild via our own shim
+      - name: Build Shims
         run: haxe all.hxml
+
+      - name: E2E tests
+        run: node tests/e2e/run.mjs
+        env:
+          HAXE_VERSION: ${{ matrix.haxe-version }}

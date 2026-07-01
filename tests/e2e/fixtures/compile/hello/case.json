@@ -1,0 +1,6 @@
+{
+  "args": ["-cp", "src", "-main", "Main", "-js", "out.js"],
+  "exitCode": 0,
+  "output": "out.js",
+  "outputContains": "ok"
+}

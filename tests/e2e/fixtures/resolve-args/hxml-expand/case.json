@@ -1,0 +1,5 @@
+{
+  "args": ["build.hxml"],
+  "expected": ["-main", "Foo", "-js", "out.js"],
+  "exitCode": 0
+}

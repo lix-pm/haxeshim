@@ -1,0 +1,12 @@
+{
+  "args": ["-cp", "src", "-lib", "minilib", "-main", "Main", "-js", "out.js"],
+  "exitCode": 0,
+  "output": "out.js",
+  "outputContains": "ok",
+  "resolveArgsCheck": {
+    "mustNotContain": ["-lib", "minilib"],
+    "mustContainPairs": {
+      "-cp": ["lib"]
+    }
+  }
+}

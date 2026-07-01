@@ -14,7 +14,8 @@
   "scripts": {
     "prepublishOnly": "haxe all.hxml",
     "postinstall": "node bin/postinstall.js",
-    "test": "haxe tests.hxml && node tests-out/RunTests.js"
+    "test": "haxe tests.hxml && node tests-out/RunTests.js",
+    "test:e2e": "haxe haxeshim.hxml && node tests/e2e/run.mjs"
   },
   "keywords": [
     "haxe"
