@@ -1,0 +1,9 @@
+{
+  "variants": [
+    { "name": "-lib", "args": ["-lib", "minilib"] },
+    { "name": "-L", "args": ["-L", "minilib"] },
+    { "name": "--library", "args": ["--library", "minilib"] }
+  ],
+  "expected": ["-cp", { "set": ["lib"] }],
+  "exitCode": 0
+}

@@ -1,0 +1,5 @@
+{
+  "args": ["-main", "Foo", "-js", "out.js"],
+  "expected": ["-main", "Foo", "-js", "out.js"],
+  "exitCode": 0
+}

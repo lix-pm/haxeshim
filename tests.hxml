@@ -1,2 +1,7 @@
+-cp src
 -cp tests
+-lib tink_core
+-lib hxnodejs
+-lib hx3compat
 -main RunTests
+-js tests-out/RunTests.js
