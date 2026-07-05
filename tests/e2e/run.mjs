@@ -14,7 +14,7 @@ import {
 } from './lib/compile-server.mjs';
 import { bold, boldGreen, boldRed, green, setColorEnabled } from './lib/colors.mjs';
 import { log, setVerbose } from './lib/log.mjs';
-import { runShim } from './lib/shim.mjs';
+import { runShim, runHaxelibShim } from './lib/shim.mjs';
 import { parseLines, assertExpected, assertResolveArgsCheck, exitCodesMatch } from './lib/assert.mjs';
 
 const SERVER_TIMEOUT_MS = 10_000;
@@ -112,6 +112,44 @@ async function runResolveArgsCase(testCase) {
   if (!exitCodesMatch(result.exitCode, definition.exitCode)) {
     throw new Error(
       `${name}: expected exit code ${definition.exitCode}, got ${result.exitCode}\n` +
+        `  stdout: ${result.stdout}\n` +
+        `  stderr: ${result.stderr}`
+    );
+  }
+
+  if (definition.expectedError) {
+    if (!output.includes(definition.expectedError)) {
+      throw new Error(
+        `${name}: expected error containing ${JSON.stringify(definition.expectedError)}\n` +
+          `  output: ${output}`
+      );
+    }
+    return;
+  }
+
+  if (definition.expected) {
+    const lines = parseLines(result.stdout, projectDir);
+    assertExpected(lines, definition.expected, name);
+  }
+}
+
+/**
+ * @param {{ name: string, projectDir: string, definition: any }} testCase
+ */
+async function runHaxelibFlagsCase(testCase) {
+  const { name, projectDir, definition } = testCase;
+  log(name, `invoke: runHaxelibShim(${JSON.stringify(definition.args)})`);
+
+  const result = await runHaxelibShim(projectDir, definition.args);
+  log(name, 'stdout:', result.stdout);
+  log(name, 'stderr:', result.stderr);
+
+  const output = result.stdout + result.stderr;
+  const exitCode = definition.exitCode ?? 0;
+
+  if (!exitCodesMatch(result.exitCode, exitCode)) {
+    throw new Error(
+      `${name}: expected exit code ${exitCode}, got ${result.exitCode}\n` +
         `  stdout: ${result.stdout}\n` +
         `  stderr: ${result.stderr}`
     );
@@ -306,10 +344,11 @@ function expandResolveArgsRuns(testCase) {
   return variants.map((variant, index) => {
     const variantName = variant.name ?? `#${index}`;
     const { variants: _variants, args: _args, ...shared } = definition;
+    const { name: _variantName, args: variantArgs, ...variantOverrides } = variant;
     return {
       name: `${name} (${variantName})`,
       projectDir,
-      definition: { ...shared, args: variant.args },
+      definition: { ...shared, ...variantOverrides, args: variantArgs },
     };
   });
 }
@@ -351,18 +390,35 @@ async function main() {
   }
 
   const resolveCases = await discoverCases('resolve-args');
+  const haxelibFlagsCases = await discoverCases('haxelib-flags');
   const compileCases = await discoverCases('compile');
   const serverCases = await discoverCases('server');
   const failures = [];
   const runOptions = { haxeVersion };
 
   const resolveRunCount = countResolveArgsRuns(resolveCases);
+  const haxelibFlagsRunCount = countResolveArgsRuns(haxelibFlagsCases);
   console.log(bold(`Running ${resolveRunCount} resolve-args cases...`));
   for (const testCase of resolveCases) {
     for (const run of expandResolveArgsRuns(testCase)) {
       try {
         await ensureFixturePrepared(run, runOptions);
         await runResolveArgsCase(run);
+        console.log(`  ${green('ok')}  ${run.name}`);
+      } catch (e) {
+        console.error(`  ${boldRed('FAIL')} ${run.name}`);
+        console.error(e instanceof Error ? e.message : e);
+        failures.push(run.name);
+      }
+    }
+  }
+
+  console.log(bold(`Running ${haxelibFlagsRunCount} haxelib-flags cases...`));
+  for (const testCase of haxelibFlagsCases) {
+    for (const run of expandResolveArgsRuns(testCase)) {
+      try {
+        await ensureFixturePrepared(run, runOptions);
+        await runHaxelibFlagsCase(run);
         console.log(`  ${green('ok')}  ${run.name}`);
       } catch (e) {
         console.error(`  ${boldRed('FAIL')} ${run.name}`);
@@ -408,7 +464,7 @@ async function main() {
     process.exit(1);
   }
 
-  const totalCases = resolveRunCount + compileCases.length + serverRunCount;
+  const totalCases = resolveRunCount + haxelibFlagsRunCount + compileCases.length + serverRunCount;
   console.log(boldGreen(`\nAll ${totalCases} E2E cases passed.`));
 }
 

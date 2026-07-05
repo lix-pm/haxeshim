@@ -1,0 +1,32 @@
+{
+  "variants": [
+    {
+      "name": "--global path",
+      "args": ["--global", "path", "minilib"],
+      "expected": ["lib/"]
+    },
+    {
+      "name": "-cwd path",
+      "args": ["-cwd", ".", "path", "minilib"],
+      "expected": ["lib/"]
+    },
+    {
+      "name": "--cwd path",
+      "args": ["--cwd", ".", "path", "minilib"],
+      "expected": ["lib/"]
+    },
+    {
+      "name": "unsupported flag",
+      "args": ["--debug", "path", "minilib"],
+      "exitCode": 500,
+      "expectedError": "not supported by haxeshim"
+    },
+    {
+      "name": "-cwd missing argument",
+      "args": ["-cwd"],
+      "exitCode": 500,
+      "expectedError": "requires argument"
+    }
+  ],
+  "exitCode": 0
+}

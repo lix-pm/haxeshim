@@ -1,16 +1,14 @@
 import { spawn } from 'node:child_process';
-import { getRepoRoot, getShimPath } from './bootstrap.mjs';
+import { getRepoRoot, getShimPath, getHaxelibShimPath } from './bootstrap.mjs';
 
 /**
  * @param {string} projectDir
  * @param {string[]} args
  * @returns {Promise<{ exitCode: number, stdout: string, stderr: string }>}
  */
-export function runShim(projectDir, args) {
-  const shim = getShimPath();
-
+function runShimAt(shimPath, projectDir, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [shim, ...args], {
+    const child = spawn(process.execPath, [shimPath, ...args], {
       cwd: projectDir,
       env: process.env,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -35,6 +33,24 @@ export function runShim(projectDir, args) {
       });
     });
   });
+}
+
+/**
+ * @param {string} projectDir
+ * @param {string[]} args
+ * @returns {Promise<{ exitCode: number, stdout: string, stderr: string }>}
+ */
+export function runShim(projectDir, args) {
+  return runShimAt(getShimPath(), projectDir, args);
+}
+
+/**
+ * @param {string} projectDir
+ * @param {string[]} args
+ * @returns {Promise<{ exitCode: number, stdout: string, stderr: string }>}
+ */
+export function runHaxelibShim(projectDir, args) {
+  return runShimAt(getHaxelibShimPath(), projectDir, args);
 }
 
 export { getRepoRoot };

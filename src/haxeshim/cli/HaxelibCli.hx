@@ -6,6 +6,10 @@ import haxeshim.sys.*;
 using haxe.io.Path;
 using sys.FileSystem;
 
+typedef ParsedHaxelibArgs = {
+  var commandArgs:Array<String>;
+}
+
 class HaxelibCli {
   static function exit<T>(o:Outcome<T, Error>)
     switch o {
@@ -56,7 +60,7 @@ class HaxelibCli {
               Sys.println('Unexpected -lib $wtf returned from haxelib path ${libs.join(' ')}');
               Sys.exit(500);
           }
-        case '--cwd': i++; // skip
+        case '-cwd' | '--cwd': i++; // skip value
         case '-cp': out.push(resolved[++i].addTrailingSlash());
         case v if (v.charCodeAt(0) == '-'.code): out.push('$v ${resolved[++i]}');
         default:
@@ -97,13 +101,13 @@ class HaxelibCli {
     Sys.println(libs.map(resolve).join('\n'));
   }
 
-  public function run(args:Array<String>)
+  public function run(args:Array<String>, rawArgs:Array<String>)
     scope.getLibCommand(args)
       .handle(function (o) switch o {
         case Success(cmd):
           exit(cmd());
         case Failure(e):
-          callHaxelib(['run'].concat(args));
+          callHaxelib(rawArgs);
       });
 
   public function runDir(name:String, path:String, args:Array<String>) {
@@ -131,35 +135,56 @@ class HaxelibCli {
       ).handle(exitWithCode);
   }
 
-  public function dispatch(args:Array<String>) {
-    switch args[0] {
+  public function dispatch(commandArgs:Array<String>, rawArgs:Array<String>) {
+    switch commandArgs[0] {
       case 'run-dir':
-        if (args.length < 3)
+        if (commandArgs.length < 3)
           Exec.die(402, 'Not enough arguments. Syntax is `haxelib run-dir <name> <path> <...args>');
-        args = args.slice(1).map(v -> scope.interpolate(v));
+        var args = commandArgs.slice(1).map(v -> scope.interpolate(v));
         var name = args.shift();
         var path = args.shift();
         runDir(name, path, args);
       case 'run':
-        run(args.slice(1));
+        run(commandArgs.slice(1), rawArgs);
       case 'path':
-        path(args.slice(1));
+        path(commandArgs.slice(1));
       case 'libpath':
-        libpath(args.slice(1));
+        libpath(commandArgs.slice(1));
       default:
-        callHaxelib(args);
+        callHaxelib(rawArgs);
     }
+  }
+
+  static function parseGlobalPrefix(args:Array<String>):ParsedHaxelibArgs {
+    var i = 0;
+    while (i < args.length)
+      switch args[i] {
+        case '-cwd' | '--cwd':
+          if (++i >= args.length)
+            Exec.die(500, '${args[i - 1]} requires argument');
+          i++;
+        case '--global':
+          i++;
+        case arg if (arg.charCodeAt(0) == '-'.code):
+          Exec.die(500, 'Global flag \'$arg\' is not supported by haxeshim; please report a bug');
+        default:
+          return { commandArgs: args.slice(i) };
+      }
+    return { commandArgs: [] };
   }
 
   static function main() {
     #if nodejs
     js.Node.process.stdout.on('error', function () {});//hxcpp apparently closes stdout and then writing to it fails
     #end
-    exec(Scope.seek());
+    exec();
   }
 
-  static public function exec(scope:Scope, ?args:Array<String>) {
-    new HaxelibCli(scope).dispatch(args ?? Sys.args());
+  static public function exec(?scope:Scope, ?args:Array<String>) {
+    var raw = args ?? Sys.args();
+    var parsed = parseGlobalPrefix(raw);
+    scope = scope ?? Scope.seek();
+    new HaxelibCli(scope).dispatch(parsed.commandArgs, raw);
   }
 
 }

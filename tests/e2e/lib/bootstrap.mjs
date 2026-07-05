@@ -14,12 +14,17 @@ export function getShimPath() {
   return join(repoRoot, 'bin/haxeshim.js');
 }
 
+export function getHaxelibShimPath() {
+  return join(repoRoot, 'bin/haxelibshim.js');
+}
+
 export function ensureShimBuilt() {
-  const shim = getShimPath();
-  try {
-    accessSync(shim);
-  } catch {
-    throw new Error(`haxeshim.js not found at ${shim}. Run: haxe haxeshim.hxml`);
+  for (const shim of [getShimPath(), getHaxelibShimPath()]) {
+    try {
+      accessSync(shim);
+    } catch {
+      throw new Error(`Shim not found at ${shim}. Run: haxe all.hxml`);
+    }
   }
 }
 
