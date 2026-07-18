@@ -121,11 +121,14 @@ class HaxelibCli {
         function (main) return switch main {
           case null:
             Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
-          case v:
+          case _:
             switch installation.compiler {
               case haxe if (haxe.exists()):
                 Exec.sync(haxe, path, 
-                  ['--run', main].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), 
+                  scope.resolve(['-lib', name])
+                    .concat(['--run', main])
+                    .concat(args)
+                    .concat([Sys.getCwd().removeTrailingSlashes() + '/']), 
                   { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name }
                 );
               case path:
