@@ -16,6 +16,12 @@
       "expected": ["lib/"]
     },
     {
+      "name": "--cwd from other directory",
+      "args": ["--cwd", "__PROJECT_DIR__", "path", "minilib"],
+      "spawnCwd": "..",
+      "expected": ["lib/"]
+    },
+    {
       "name": "unsupported flag",
       "args": ["--debug", "path", "minilib"],
       "exitCode": 500,

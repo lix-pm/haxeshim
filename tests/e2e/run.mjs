@@ -1,7 +1,6 @@
 import { readdir, readFile, unlink, access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
 import { bootstrap, prepareFixture } from './lib/bootstrap.mjs';
 import {
   getFreePort,
@@ -138,9 +137,15 @@ async function runResolveArgsCase(testCase) {
  */
 async function runHaxelibFlagsCase(testCase) {
   const { name, projectDir, definition } = testCase;
-  log(name, `invoke: runHaxelibShim(${JSON.stringify(definition.args)})`);
+  const args = definition.args.map((arg) =>
+    arg === '__PROJECT_DIR__' ? projectDir : arg
+  );
+  const spawnCwd = definition.spawnCwd
+    ? resolve(projectDir, definition.spawnCwd)
+    : projectDir;
+  log(name, `invoke: runHaxelibShim(cwd=${spawnCwd}, ${JSON.stringify(args)})`);
 
-  const result = await runHaxelibShim(projectDir, definition.args);
+  const result = await runHaxelibShim(spawnCwd, args);
   log(name, 'stdout:', result.stdout);
   log(name, 'stderr:', result.stderr);
 

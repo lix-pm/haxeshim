@@ -8,6 +8,7 @@ using sys.FileSystem;
 
 typedef ParsedHaxelibArgs = {
   var commandArgs:Array<String>;
+  var cwd:Null<String>;
 }
 
 class HaxelibCli {
@@ -160,20 +161,21 @@ class HaxelibCli {
 
   static function parseGlobalPrefix(args:Array<String>):ParsedHaxelibArgs {
     var i = 0;
+    var cwd:Null<String> = null;
     while (i < args.length)
       switch args[i] {
         case '-cwd' | '--cwd':
           if (++i >= args.length)
             Exec.die(500, '${args[i - 1]} requires argument');
-          i++;
+          cwd = args[i++];
         case '--global':
           i++;
         case arg if (arg.charCodeAt(0) == '-'.code):
           Exec.die(500, 'Global flag \'$arg\' is not supported by haxeshim; please report a bug');
         default:
-          return { commandArgs: args.slice(i) };
+          return { commandArgs: args.slice(i), cwd: cwd };
       }
-    return { commandArgs: [] };
+    return { commandArgs: [], cwd: cwd };
   }
 
   static function main() {
@@ -186,6 +188,10 @@ class HaxelibCli {
   static public function exec(?scope:Scope, ?args:Array<String>) {
     var raw = args ?? Sys.args();
     var parsed = parseGlobalPrefix(raw);
+    if (parsed.cwd != null)
+      try Sys.setCwd(parsed.cwd)
+      catch (e:Dynamic)
+        Exec.die(500, 'Invalid directory: ${parsed.cwd}');
     scope = scope ?? Scope.seek();
     new HaxelibCli(scope).dispatch(parsed.commandArgs, raw);
   }
