@@ -1,0 +1,4 @@
+{
+  "version": "stable",
+  "resolveLibs": "scoped"
+}

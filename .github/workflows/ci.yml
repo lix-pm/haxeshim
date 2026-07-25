@@ -49,3 +49,12 @@ jobs:
         env:
           FORCE_COLOR: 1
         run: node tests/e2e/run.mjs --haxe-version ${{ matrix.haxe-version }} --verbose
+
+      # Windows CreateProcess finds stock haxelib.exe next to haxe.exe before PATH,
+      # so scoped `haxelib path hxcpp` fails during gencpp. Expect this step to fail
+      # until version-dir haxelib.exe is wrapped with the haxeshim exify shim.
+      - name: Windows sibling-haxelib repro
+        if: runner.os == 'Windows'
+        env:
+          FORCE_COLOR: 1
+        run: node tests/e2e/windows-sibling-haxelib.mjs --haxe-version ${{ matrix.haxe-version }}
