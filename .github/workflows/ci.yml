@@ -20,8 +20,9 @@ jobs:
           - macos-latest
           - windows-latest
         haxe-version:
-          - 4.3.7
+          - stable
           - 5.0.0-preview.1
+          - nightly
     defaults:
       run:
         shell: bash
