@@ -170,6 +170,15 @@ async function runHaxelibFlagsCase(testCase) {
     return;
   }
 
+  for (const token of definition.mustNotContain ?? []) {
+    if (output.includes(token)) {
+      throw new Error(
+        `${name}: output must not contain ${JSON.stringify(token)}\n` +
+          `  output: ${output}`
+      );
+    }
+  }
+
   if (definition.expected) {
     const lines = parseLines(result.stdout, projectDir);
     assertExpected(lines, definition.expected, name);
@@ -396,6 +405,7 @@ async function main() {
 
   const resolveCases = await discoverCases('resolve-args');
   const haxelibFlagsCases = await discoverCases('haxelib-flags');
+  const haxelibRunCases = await discoverCases('haxelib-run');
   const compileCases = await discoverCases('compile');
   const serverCases = await discoverCases('server');
   const failures = [];
@@ -403,6 +413,7 @@ async function main() {
 
   const resolveRunCount = countResolveArgsRuns(resolveCases);
   const haxelibFlagsRunCount = countResolveArgsRuns(haxelibFlagsCases);
+  const haxelibRunCount = countResolveArgsRuns(haxelibRunCases);
   console.log(bold(`Running ${resolveRunCount} resolve-args cases...`));
   for (const testCase of resolveCases) {
     for (const run of expandResolveArgsRuns(testCase)) {
@@ -420,6 +431,21 @@ async function main() {
 
   console.log(bold(`Running ${haxelibFlagsRunCount} haxelib-flags cases...`));
   for (const testCase of haxelibFlagsCases) {
+    for (const run of expandResolveArgsRuns(testCase)) {
+      try {
+        await ensureFixturePrepared(run, runOptions);
+        await runHaxelibFlagsCase(run);
+        console.log(`  ${green('ok')}  ${run.name}`);
+      } catch (e) {
+        console.error(`  ${boldRed('FAIL')} ${run.name}`);
+        console.error(e instanceof Error ? e.message : e);
+        failures.push(run.name);
+      }
+    }
+  }
+
+  console.log(bold(`Running ${haxelibRunCount} haxelib-run cases...`));
+  for (const testCase of haxelibRunCases) {
     for (const run of expandResolveArgsRuns(testCase)) {
       try {
         await ensureFixturePrepared(run, runOptions);
@@ -469,7 +495,8 @@ async function main() {
     process.exit(1);
   }
 
-  const totalCases = resolveRunCount + haxelibFlagsRunCount + compileCases.length + serverRunCount;
+  const totalCases =
+    resolveRunCount + haxelibFlagsRunCount + haxelibRunCount + compileCases.length + serverRunCount;
   console.log(boldGreen(`\nAll ${totalCases} E2E cases passed.`));
 }
 

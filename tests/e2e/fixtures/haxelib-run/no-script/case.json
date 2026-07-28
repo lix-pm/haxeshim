@@ -1,0 +1,5 @@
+{
+  "args": ["run-dir", "toolib", "lib"],
+  "exitCode": 404,
+  "expectedError": "does not have a run script"
+}

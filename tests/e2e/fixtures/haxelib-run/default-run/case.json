@@ -1,0 +1,5 @@
+{
+  "args": ["run-dir", "toolib", "lib"],
+  "exitCode": 0,
+  "expected": ["DEFAULT_RUN_OK", "toolib", "toolib"]
+}

@@ -1,0 +1,5 @@
+{
+  "args": ["run-dir", "toolib", "lib"],
+  "exitCode": 1,
+  "mustNotContain": ["PREFER_RUN_N_OK"]
+}

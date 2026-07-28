@@ -111,7 +111,23 @@ class HaxelibCli {
           callHaxelib(rawArgs);
       });
 
+  function runWithHaxe(name:String, path:String, main:String, args:Array<String>, ?env:Env):Outcome<Int, Error> {
+    return switch installation.compiler {
+      case haxe if (haxe.exists()):
+        Exec.sync(haxe, path,
+          scope.resolve(['-lib', name])
+            .concat(['--run', main])
+            .concat(args)
+            .concat([Sys.getCwd().removeTrailingSlashes() + '/']),
+          env
+        );
+      case compilerPath:
+        Exec.die(404, 'haxe compiler not found at the expected location "$compilerPath"');
+    }
+  }
+
   public function runDir(name:String, path:String, args:Array<String>) {
+    final env = { HAXELIB_RUN: '1', HAXELIB_RUN_NAME: name, HAXELIB_LIBNAME: name };
     Fs.get('$path/haxelib.json')
       .next(
         function (s)
@@ -121,20 +137,14 @@ class HaxelibCli {
       .next(
         function (main) return switch main {
           case null:
-            Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name });
+            if ('$path/run.n'.exists())
+              Exec.sync('neko', path, ['$path/run.n'].concat(args).concat([Sys.getCwd().removeTrailingSlashes() + '/']), env);
+            else if ('$path/Run.hx'.exists())
+              runWithHaxe(name, path, 'Run', args, env);
+            else
+              return Failure(new Error(404, 'Library $name does not have a run script'));
           case _:
-            switch installation.compiler {
-              case haxe if (haxe.exists()):
-                Exec.sync(haxe, path, 
-                  scope.resolve(['-lib', name])
-                    .concat(['--run', main])
-                    .concat(args)
-                    .concat([Sys.getCwd().removeTrailingSlashes() + '/']), 
-                  { HAXELIB_RUN: '1', HAXELIB_LIBNAME: name }
-                );
-              case path:
-                Exec.die(404, 'haxe compiler not found at the expected location "$path"');
-            }
+            runWithHaxe(name, path, main, args, env);
         }
       ).handle(exitWithCode);
   }
