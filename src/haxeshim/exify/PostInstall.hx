@@ -2,7 +2,6 @@ package haxeshim.exify;
 
 import js.node.ChildProcess;
 import js.Node.*;
-import haxe.io.*;
 
 using sys.io.File;
 using sys.FileSystem;
@@ -11,41 +10,11 @@ using StringTools;
 
 class PostInstall {
 
-  static var placeholder = Bytes.ofString("abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789abcdefghijklmnopqrstufvwxyzABCDEFGHIJKLMNOPQRSTUFVWXYZ0123456789");
-  static var exifier = haxe.crypto.Base64.decode(haxeshim.exify.Embed.binary());
-  static var offset = {
-    var ret = -1;
-    for (i in 0...exifier.length - placeholder.length)
-      if (exifier.sub(i, placeholder.length).compare(placeholder) == 0) {
-        ret = i;
-        break;
-      }
-    if (ret == -1)
-      throw 'no placeholder found';
-    ret;
-  }
-
-  static function makeExe(call:String) {
-    var call = Bytes.ofString(call),
-        replacer = Bytes.alloc(placeholder.length);
-
-    replacer.fill(0, replacer.length, 0);
-    replacer.blit(0, call, 0, call.length);
-
-    var buf = Bytes.alloc(exifier.length);
-
-    buf.blit(0, exifier, 0, buf.length);
-    buf.blit(offset, replacer, 0, replacer.length);
-
-    return buf;
-  }
-
   static function exify(dir, source) {
-
     for (name in ['haxe', 'haxelib', 'neko']) {
       var exe = '$dir/$name.exe';
       try {
-        exe.saveBytes(makeExe('node "$source/${name}shim.js"'));
+        exe.saveBytes(WindowsExe.makeExe('node "$source/${name}shim.js"'));
         var code = try Sys.command(exe, [if (name == 'haxelib') 'version' else '-version']) catch (e:Dynamic) 500;
         if (code != 0) {
           Sys.println('Warning: Windows will not allow executing shimmed $name.exe. It will be removed.');
@@ -65,7 +34,6 @@ class PostInstall {
         Sys.exit(500);
       }
     }
-
   }
 
   static var GLOBAL:Bool = !!(untyped process.env["npm_config_global"]); //wohooo \o/
