@@ -58,7 +58,7 @@ class HaxelibCli {
             case Args.getNdll(_) => Some(v):
               out.push('-L $v');
             case wtf:
-              Sys.println('Unexpected -lib $wtf returned from haxelib path ${libs.join(' ')}');
+              Out.println('Unexpected -lib $wtf returned from haxelib path ${libs.join(' ')}');
               Sys.exit(500);
           }
         case '-cwd' | '--cwd': i++; // skip value
@@ -69,7 +69,7 @@ class HaxelibCli {
       i++;
     }
 
-    Sys.print(out.join('\n'));
+    Out.print(out.join('\n'));
     Sys.exit(0);
   }
   
@@ -87,19 +87,19 @@ class HaxelibCli {
                 if(FileSystem.exists(Path.join([path, 'haxelib.json'])))
                   return path.addTrailingSlash();
               } while((path = Path.directory(path)) != '');
-              Sys.println('Unable to find haxelib.json for $lib at ${resolved[i + 1]}');
+              Out.println('Unable to find haxelib.json for $lib at ${resolved[i + 1]}');
               Sys.exit(500);
             }
           case _:
         }
       }
       
-      Sys.println('Unable to resolve libpath for $lib');
+      Out.println('Unable to resolve libpath for $lib');
       Sys.exit(500);
       throw 'unreachable';
     }
     
-    Sys.println(libs.map(resolve).join('\n'));
+    Out.println(libs.map(resolve).join('\n'));
   }
 
   public function run(args:Array<String>, rawArgs:Array<String>)
@@ -189,9 +189,9 @@ class HaxelibCli {
   }
 
   static function main() {
-    #if nodejs
-    js.Node.process.stdout.on('error', function () {});//hxcpp apparently closes stdout and then writing to it fails
-    #end
+    // note: write errors on stdout - e.g. because whoever spawned us closed it - are swallowed by `Out`,
+    // which also never touches `process.stdout`, because that would put the file descriptor into
+    // non-blocking mode when stdout happens to be a pipe
     exec();
   }
 

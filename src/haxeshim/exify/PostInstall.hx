@@ -3,6 +3,7 @@ package haxeshim.exify;
 import js.node.ChildProcess;
 import js.Node.*;
 import haxe.io.*;
+import haxeshim.sys.Out;
 
 using sys.io.File;
 using sys.FileSystem;
@@ -48,20 +49,20 @@ class PostInstall {
         exe.saveBytes(makeExe('node "$source/${name}shim.js"'));
         var code = try Sys.command(exe, [if (name == 'haxelib') 'version' else '-version']) catch (e:Dynamic) 500;
         if (code != 0) {
-          Sys.println('Warning: Windows will not allow executing shimmed $name.exe. It will be removed.');
+          Out.println('Warning: Windows will not allow executing shimmed $name.exe. It will be removed.');
           try exe.deleteFile()
           catch (e:Dynamic) {
-            Sys.println('ERROR: Removing $name.exe has also failed.');
-            Sys.println('At this point, things are probably badly broken.');
-            Sys.println('Please open $dir and see if you can clean it up.');
-            Sys.println('Good luck ...');
+            Out.println('ERROR: Removing $name.exe has also failed.');
+            Out.println('At this point, things are probably badly broken.');
+            Out.println('Please open $dir and see if you can clean it up.');
+            Out.println('Good luck ...');
             Sys.exit(500);
           }
           break;
         }
       }
       catch (e:Dynamic) {
-        Sys.println('failed to shim $name');
+        Out.println('failed to shim $name');
         Sys.exit(500);
       }
     }
@@ -93,7 +94,7 @@ class PostInstall {
               exify(npm, js.Node.__dirname.replace('\\', '/'));
 
               if (found.length > 0 && '$npm/lix.cmd'.exists())
-                Sys.println(['Warning: the haxe executable bundled with lix is shadowed by:'].concat(found).join('\n  '));
+                Out.println(['Warning: the haxe executable bundled with lix is shadowed by:'].concat(found).join('\n  '));
 
               break;
 

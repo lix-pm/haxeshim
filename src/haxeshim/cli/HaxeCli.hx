@@ -1,6 +1,7 @@
 package haxeshim.cli;
 
 import haxeshim.sys.Exec;
+import haxeshim.sys.Out;
 import haxeshim.sys.Exec.*;
 import haxeshim.scope.Scope;
 
@@ -73,7 +74,7 @@ class HaxeCli {
 
           case 'resolve-args':
 
-            Sys.println(gracefully(scope.resolve.bind(args)).join('\n'));
+            Out.println(gracefully(scope.resolve.bind(args)).join('\n'));
             Sys.exit(0);
 
           case 'show-version':
@@ -89,8 +90,8 @@ class HaxeCli {
                   die(e.code, e.message);
               }
 
-            Sys.println('-D haxe-ver=$version');
-            Sys.println('-cp ${scope.haxeInstallation.stdLib}');
+            Out.println('-D haxe-ver=$version');
+            Out.println('-cp ${scope.haxeInstallation.stdLib}');
 
           case v:
             die(404, 'Unknown extension $v');

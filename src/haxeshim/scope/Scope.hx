@@ -493,7 +493,7 @@ class Scope {
 
     switch errors.produce(42) {
       case Failure(_.errors[0] => e):
-        Sys.println(e.message);
+        Out.println(e.message);
         Sys.exit(switch e.code { case null: 500; case v: v; });
       default:
     }
