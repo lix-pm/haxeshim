@@ -27,8 +27,11 @@ class HaxelibCli {
   var scope:Scope;
   var installation:HaxeInstallation;
 
-  function callHaxelib(args:Array<String>)
-    exitWithCode(Exec.sync(installation.haxelib, Sys.getCwd(), args, installation.env));
+  function callHaxelib(args:Array<String>, ?env:Env)
+    exitWithCode(Exec.sync(installation.haxelib, Sys.getCwd(), args, switch env {
+      case null: installation.env;
+      case v: v.mergeInto(installation.env);
+    }));
 
   public function new(scope) {
     this.scope = scope;
@@ -108,7 +111,7 @@ class HaxelibCli {
         case Success(cmd):
           exit(cmd());
         case Failure(e):
-          callHaxelib(rawArgs);
+          callHaxelib(rawArgs, scope.runEnv);// stock haxelib runs the script with the library's directory as cwd
       });
 
   function runWithHaxe(name:String, path:String, main:String, args:Array<String>, ?env:Env):Outcome<Int, Error> {
@@ -127,7 +130,7 @@ class HaxelibCli {
   }
 
   public function runDir(name:String, path:String, args:Array<String>) {
-    final env = { HAXELIB_RUN: '1', HAXELIB_RUN_NAME: name, HAXELIB_LIBNAME: name };
+    final env = scope.runEnv.mergeInto({ HAXELIB_RUN: '1', HAXELIB_RUN_NAME: name, HAXELIB_LIBNAME: name });
     Fs.get('$path/haxelib.json')
       .next(
         function (s)
@@ -198,10 +201,12 @@ class HaxelibCli {
   static public function exec(?scope:Scope, ?args:Array<String>) {
     var raw = args ?? Sys.args();
     var parsed = parseGlobalPrefix(raw);
-    if (parsed.cwd != null)
+    if (parsed.cwd != null) {
       try Sys.setCwd(parsed.cwd)
       catch (e:Dynamic)
         Exec.die(500, 'Invalid directory: ${parsed.cwd}');
+      Scope.dropInheritedScope();
+    }
     scope = scope ?? Scope.seek();
     new HaxelibCli(scope).dispatch(parsed.commandArgs, raw);
   }

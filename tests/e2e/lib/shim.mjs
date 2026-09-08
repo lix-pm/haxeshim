@@ -4,13 +4,14 @@ import { getRepoRoot, getShimPath, getHaxelibShimPath } from './bootstrap.mjs';
 /**
  * @param {string} projectDir
  * @param {string[]} args
+ * @param {Record<string, string>} [env] additional environment variables
  * @returns {Promise<{ exitCode: number, stdout: string, stderr: string }>}
  */
-function runShimAt(shimPath, projectDir, args) {
+function runShimAt(shimPath, projectDir, args, env) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [shimPath, ...args], {
       cwd: projectDir,
-      env: process.env,
+      env: env ? { ...process.env, ...env } : process.env,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
@@ -38,19 +39,21 @@ function runShimAt(shimPath, projectDir, args) {
 /**
  * @param {string} projectDir
  * @param {string[]} args
+ * @param {Record<string, string>} [env] additional environment variables
  * @returns {Promise<{ exitCode: number, stdout: string, stderr: string }>}
  */
-export function runShim(projectDir, args) {
-  return runShimAt(getShimPath(), projectDir, args);
+export function runShim(projectDir, args, env) {
+  return runShimAt(getShimPath(), projectDir, args, env);
 }
 
 /**
  * @param {string} projectDir
  * @param {string[]} args
+ * @param {Record<string, string>} [env] additional environment variables
  * @returns {Promise<{ exitCode: number, stdout: string, stderr: string }>}
  */
-export function runHaxelibShim(projectDir, args) {
-  return runShimAt(getHaxelibShimPath(), projectDir, args);
+export function runHaxelibShim(projectDir, args, env) {
+  return runShimAt(getHaxelibShimPath(), projectDir, args, env);
 }
 
 export { getRepoRoot };

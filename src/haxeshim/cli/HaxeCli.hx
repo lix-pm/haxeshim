@@ -21,7 +21,9 @@ class HaxeCli {
       args.shift();
       switch args.shift() {
         case null: die(500, '--cwd requires argument');
-        case v: Sys.setCwd(v);
+        case v:
+          Sys.setCwd(v);
+          Scope.dropInheritedScope();
       }
     }
     return fn(args);

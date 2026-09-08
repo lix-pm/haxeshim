@@ -68,6 +68,18 @@ class Scope {
 
   public var haxeInstallation(default, null):HaxeInstallation;
 
+  /**
+   * The environment that propagates this scope to child processes.
+   *
+   * Needed because a `haxelib run` script is invoked with the library's own directory as its working
+   * directory, from where looking for a `.haxerc` yields whatever scope happens to surround the
+   * library rather than the one the script was invoked from - usually the global scope, given that
+   * libraries tend to live under the haxeshim root.
+   */
+  public var runEnv(get, never):Env;
+    function get_runEnv():Env
+      return [SCOPE_VAR => scopeDir];
+
   var logger = Logger.get(false);
 
   public function withLogger<T>(logger:Logger, f:Void->T):T {
@@ -299,7 +311,7 @@ class Scope {
           case [cmd]:
             return Exec.shell.bind([interpolate(cmd)].concat(
               args.map(if (Os.IS_WINDOWS) haxe.SysTools.quoteWinArg.bind(_, true) else haxe.SysTools.quoteUnixArg)
-            ).join(' '), Sys.getCwd(), haxeInstallation.env);
+            ).join(' '), Sys.getCwd(), runEnv.mergeInto(haxeInstallation.env));
           default: new Error('more than one @run directive for library $lib');
         });
   }
@@ -511,7 +523,15 @@ class Scope {
     }
 
     var startLookingIn = switch options.startLookingIn {
-      case null: cwd;
+      case null:
+        switch [options.cwd, env(SCOPE_VAR)] {
+          // A scope inherited from the environment wins over the working directory, because the
+          // latter may well have been changed to somewhere entirely outside the scope - which is
+          // exactly what `haxelib run` does. It does not win over a location that was explicitly
+          // requested though, as that is a deliberate attempt to operate on a different scope.
+          case [null, Some(inherited)]: inherited;
+          case _: cwd;
+        }
       case v: v;
     }
 
@@ -537,6 +557,18 @@ class Scope {
     }
 
   static public inline var LIBCACHE = 'HAXE_LIBCACHE';
+
+  /**
+   * The environment variable through which a scope is propagated to child processes, see `runEnv`.
+   */
+  static public inline var SCOPE_VAR = 'HAXESHIM_SCOPE';
+
+  /**
+   * Discards a scope inherited from the environment, so that it neither applies here nor in any
+   * child process. To be called when a scope was explicitly requested, e.g. via `--cwd`.
+   */
+  static public function dropInheritedScope()
+    Sys.putEnv(SCOPE_VAR, null);
 
   static public var DEFAULT_ROOT(default, null):String =
     env('HAXE_ROOT').or(

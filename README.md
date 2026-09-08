@@ -27,6 +27,8 @@ It can always be overwritten with the `HAXESHIM_ROOT` environment variable.
 
 When running the `haxe` command, we scan from the CWD up for a `.haxerc` and if non is found we look in the "root" directory. Every `.haxerc` defines what we consider a "scope" for all subdirectories (except those which contain `.haxerc` files to define new scopes).
 
+One exception applies: `haxelib run` invokes a library's run script with the library's own directory as the working directory, which is usually somewhere below the "root" directory and therefore outside the scope the script was invoked from. To keep such scripts (and anything they invoke in turn) operating on the scope they were started in, that scope is exported as `HAXESHIM_SCOPE` and takes precedence over the scan described above. Passing `--cwd` to either command discards it, because that is an explicit request to operate on a different scope.
+
 The contents of this file are stored as JSON and defined like so:
 
 ```haxe

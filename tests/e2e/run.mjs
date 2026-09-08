@@ -1,7 +1,7 @@
 import { readdir, readFile, unlink, access } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { bootstrap, prepareFixture } from './lib/bootstrap.mjs';
+import { bootstrap, prepareFixture, getHaxelibShimPath } from './lib/bootstrap.mjs';
 import {
   getFreePort,
   spawnWaitServer,
@@ -133,19 +133,36 @@ async function runResolveArgsCase(testCase) {
 }
 
 /**
+ * Substitutes the placeholders that let a fixture refer to its own location and to the
+ * things it needs to invoke the shims again from within a `haxelib run` script.
+ * @param {string} value
+ * @param {string} projectDir
+ */
+function substitutePlaceholders(value, projectDir) {
+  return value
+    .replaceAll('__PROJECT_DIR__', projectDir)
+    .replaceAll('__HAXELIB_SHIM__', getHaxelibShimPath())
+    .replaceAll('__NODE__', process.execPath);
+}
+
+/**
  * @param {{ name: string, projectDir: string, definition: any }} testCase
  */
 async function runHaxelibFlagsCase(testCase) {
   const { name, projectDir, definition } = testCase;
-  const args = definition.args.map((arg) =>
-    arg === '__PROJECT_DIR__' ? projectDir : arg
+  const args = definition.args.map((arg) => substitutePlaceholders(arg, projectDir));
+  const env = Object.fromEntries(
+    Object.entries(definition.env ?? {}).map(([key, value]) => [
+      key,
+      substitutePlaceholders(String(value), projectDir),
+    ])
   );
   const spawnCwd = definition.spawnCwd
     ? resolve(projectDir, definition.spawnCwd)
     : projectDir;
   log(name, `invoke: runHaxelibShim(cwd=${spawnCwd}, ${JSON.stringify(args)})`);
 
-  const result = await runHaxelibShim(spawnCwd, args);
+  const result = await runHaxelibShim(spawnCwd, args, env);
   log(name, 'stdout:', result.stdout);
   log(name, 'stderr:', result.stderr);
 

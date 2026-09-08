@@ -1,0 +1,9 @@
+{
+  "args": ["run-dir", "toolib", "../_external-lib"],
+  "env": {
+    "E2E_NODE": "__NODE__",
+    "E2E_HAXELIB_SHIM": "__HAXELIB_SHIM__"
+  },
+  "exitCode": 0,
+  "expected": ["INHERITED_SCOPE_RUN", "-D toolib=1.0.0", "lib/", "EXIT_OK"]
+}
